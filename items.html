@@ -1,20 +1,549 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chemical Inventory Management</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-    <link rel="stylesheet" href="inventory.css" />
-    <script src="inventory.js" defer></script>
-    <link rel="stylesheet" href="items.css" />
+    <title>Chemical Inventory</title>
+    <style>
+      /* Apply to html and body for full control */
+      html, body {
+        width: 100%; /* Ensure they take full width */
+        overflow-x: hidden; /* Hide horizontal scrollbar */
+        margin: 0;           /* Remove default margins */
+        padding: 0;          /* Remove default paddings */
+      }
+      body {
+        font-family: 'Inter', sans-serif; /* Using Inter font */
+        background: #f4f4f4;
+        color: #333; /* Default text color */
+        transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+        min-height: 100vh; /* Ensure body takes at least full viewport height */
+        display: flex; /* Use flexbox for overall layout */
+        flex-direction: column; /* Stack nav and inventory vertically */
+      }
+
+      /* Universal Box-Sizing: Best Practice */
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+
+      /* Dark Theme Styles - Now Black Theme */
+      body.dark-theme {
+        background-color: #1a1a1a; /* Very dark background - nearly black */
+        color: #f0f0f0; /* Light text for contrast */
+      }
+
+      body.dark-theme .container {
+        background: #2a2a2a; /* Darker container */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        border: 1px solid #3a3a3a; /* Darker border */
+      }
+
+      body.dark-theme .container.low-stock {
+        background-color: #7f3a3a; /* Darker red for low stock, still visible */
+        border: 2px solid #e74c3c;
+      }
+
+      body.dark-theme .container h2 {
+        color: #f0f0f0;
+      }
+
+      body.dark-theme label {
+        color: #cccccc;
+      }
+
+      body.dark-theme input {
+        background-color: #3a3a3a;
+        border-color: #555555;
+        color: #f0f0f0;
+      }
+
+      body.dark-theme button {
+        background: #007bff; /* Keep primary button color consistent */
+      }
+
+      body.dark-theme button:hover {
+        background: #0056b3;
+      }
+
+      body.dark-theme nav {
+        background-color: #222222; /* Blacker nav bar */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        border-bottom: 1px solid #111111;
+      }
+
+      body.dark-theme .nav-btn {
+        background-color: #007bff;
+      }
+
+      body.dark-theme .nav-btn:hover {
+        background-color: #0056b3;
+      }
+
+      body.dark-theme .search-input {
+        background-color: #3a3a3a;
+        border-color: #555555;
+        color: #f0f0f0;
+      }
+
+      body.dark-theme .search-input:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+      }
+
+      body.dark-theme .search-btn {
+        background-color: #007bff;
+      }
+
+      /* Specific dark theme styles for the toggle button */
+      body.dark-theme .toggle-btn {
+        background: none; /* Ensure no background in dark mode */
+        color: #f0f0f0; /* Light icon for dark theme */
+      }
+
+      body.dark-theme .toggle-btn:hover {
+        background-color: rgba(240, 240, 240, 0.1); /* Subtle hover for dark mode */
+        color: #ffffff;
+      }
+
+
+      /* Container Styling Enhancements */
+      .container {
+        background: #fff;
+        padding: 20px; /* Increased padding */
+        margin: 15px;
+        border-radius: 12px; /* More rounded corners */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); /* More prominent shadow */
+        width: 380px; /* Adjusted width to fit without unit selector */
+        transition: all 0.3s ease; /* Smooth transitions for hover/state changes */
+        border: 1px solid #e0e0e0; /* Subtle border */
+      }
+
+      .container.low-stock {
+        background-color: #ffe0e0; /* Light red background */
+        border: 2px solid #e74c3c; /* Red border */
+        box-shadow: 0 4px 20px rgba(231, 76, 60, 0.3); /* Red shadow */
+      }
+
+      .container:hover {
+        transform: translateY(-3px); /* Subtle lift effect on hover */
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .container h2 {
+        font-size: 20px; /* Slightly larger heading */
+        color: #2c3e50;
+        margin-bottom: 20px; /* Increased space below heading */
+        text-align: center; /* Center heading */
+      }
+      label {
+        display: block;
+        margin-bottom: 8px; /* Adjust spacing between label and input group */
+        font-weight: bold; /* Make labels bold */
+        color: #555;
+      }
+
+      /* Input and Button Placement within Container */
+      .input-group {
+        display: flex; /* Use flexbox for horizontal alignment */
+        align-items: center; /* Vertically align items in the middle */
+        gap: 10px; /* Space between button and input */
+        margin-bottom: 20px; /* Increased space between input groups */
+      }
+
+      .input-group input {
+        flex-grow: 1; /* Allow input to take up available space */
+        width: auto; /* Override previous fixed width */
+        padding: 10px; /* Make input a bit larger */
+        font-size: 15px;
+        border-radius: 8px; /* Rounded corners for input */
+        border: 1px solid #ddd;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .input-group input:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        outline: none;
+      }
+
+      .input-group button {
+        margin-top: 0; /* Remove top margin */
+        padding: 10px 15px; /* Adjusted padding to ensure fit */
+        font-size: 15px;
+        white-space: nowrap; /* Prevent button text from wrapping */
+        border-radius: 8px; /* Rounded corners for buttons */
+        font-weight: 600; /* Make button text a bit bolder */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
+      }
+      .input-group button:hover {
+        background-color: #0056b3;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+      }
+      .input-group button:active {
+        background-color: #004080;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        transform: translateY(0);
+      }
+
+      /* Status Paragraph */
+      p {
+        font-size: 15px; /* Slightly larger text */
+        margin-top: 10px;
+        text-align: center; /* Center status text */
+        font-weight: bold;
+        color: #666;
+      }
+      .container.low-stock p {
+        color: #e74c3c; /* Red text for low stock status */
+      }
+
+      /* Navigation Bar */
+      nav {
+        background-color: #ffffff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        position: fixed;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 20px 30px;
+      }
+
+      .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 25px; /* Adjust gap if needed after removing nav-buttons div */
+      }
+
+      .nav-btn {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        background-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease,
+          transform 0.1s ease;
+        outline: none;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+
+      .nav-btn:hover {
+        background-color: #0056b3;
+        box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+        transform: translateY(-1px);
+      }
+
+      .nav-btn:active {
+        background-color: #004080;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        transform: translateY(0);
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        color: #333;
+      }
+
+      .user-info i {
+        margin-right: 8px;
+        color: #007bff;
+      }
+
+      .search-container {
+        display: flex;
+        align-items: center;
+      }
+
+      .search-input {
+        padding: 12px 18px;
+        border: 1px solid #ced4da;
+        border-radius: 8px 0 0 8px;
+        outline: none;
+        font-size: 16px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        width: 250px;
+      }
+
+      .search-input:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      }
+
+      .search-btn {
+        padding: 12px 18px;
+        border: none;
+        border-radius: 0 8px 8px 0;
+        background-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease,
+          transform 0.1s ease;
+        outline: none;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+
+      .search-btn:hover {
+        background-color: #0056b3;
+        box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+        transform: translateY(-1px);
+      }
+
+      .search-btn:active {
+        background-color: #004080;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        transform: translateY(0);
+      }
+
+      /* Toggle Button Styles */
+      .toggle-btn {
+        background: none; /* No default background */
+        border: none;
+        color: #6c757d; /* Default color for light mode */
+        font-size: 24px;
+        cursor: pointer;
+        outline: none;
+        transition: color 0.3s ease, transform 0.1s ease, background-color 0.3s ease; /* Include background-color for transition */
+        padding: 10px;
+        border-radius: 50%;
+      }
+
+      .toggle-btn:hover {
+        background-color: rgba(108, 117, 125, 0.1); /* Subtle hover effect in light mode */
+        color: #495057;
+        transform: scale(1.1);
+      }
+
+      /* Styles for the new Edit button */
+      .edit-toggle-btn {
+        background-color: #6c757d; /* A neutral gray */
+        color: white;
+        padding: 10px 15px; /* Reduced padding for a slightly smaller button */
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
+        white-space: nowrap;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .edit-toggle-btn:hover {
+        background-color: #5a6268;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      body.dark-theme .edit-toggle-btn {
+        background-color: #5a6268;
+      }
+
+      body.dark-theme .edit-toggle-btn:hover {
+        background-color: #6c757d;
+      }
+
+
+      /* Centering the #inventory content */
+      #inventory {
+        margin-top: 110px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center; /* Centers items horizontally */
+        align-items: flex-start; /* Aligns items to the top of the flex container */
+        padding: 20px; /* Add some padding around the inventory section */
+        flex-grow: 1; /* Allows inventory to take remaining vertical space */
+        width: 100%; /* Ensure it uses full width for centering */
+      }
+
+      /* Added styles for user email and logout button */
+      .user-display {
+        font-size: 0.9em;
+        color: #666;
+        margin-right: 15px;
+      }
+      .logout-btn {
+        background-color: #dc3545; /* Red logout button */
+        padding: 8px 15px;
+        border-radius: 5px;
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        border: none;
+      }
+      .logout-btn:hover {
+        background-color: #c82333;
+      }
+      body.dark-theme .user-display {
+        color: #bdc3c7;
+      }
+      body.dark-theme .logout-btn {
+        background-color: #e74c3c;
+      }
+      body.dark-theme .logout-btn:hover {
+        background-color: #c0392b;
+      }
+
+      /* Toast Notification Styles */
+      #toast-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column-reverse; /* New toasts appear on top */
+        gap: 10px;
+      }
+
+      .toast {
+        background-color: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        min-width: 250px;
+        text-align: center;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .toast.success {
+        background-color: #28a745; /* Green for success */
+      }
+
+      .toast.error {
+        background-color: #dc3545; /* Red for error */
+      }
+
+      .toast.info {
+        background-color: #17a2b8; /* Blue for info */
+      }
+
+      /* Modal Styles */
+      .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.6);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1001; /* Above toasts */
+          transition: opacity 0.3s ease;
+          opacity: 0; /* Start hidden */
+          pointer-events: none; /* Allow clicks through when hidden */
+      }
+
+      .modal-overlay.visible {
+          opacity: 1;
+          pointer-events: auto; /* Enable clicks when visible */
+      }
+
+      .modal-content {
+          background-color: #fff;
+          padding: 30px;
+          border-radius: 12px;
+          box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+          text-align: center;
+          max-width: 400px;
+          width: 90%;
+          transform: scale(0.9); /* Start slightly smaller */
+          transition: transform 0.3s ease;
+      }
+
+      .modal-overlay.visible .modal-content {
+          transform: scale(1); /* Scale to normal size when visible */
+      }
+
+      body.dark-theme .modal-content {
+          background-color: #2a2a2a;
+          color: #f0f0f0;
+      }
+
+      .modal-content p {
+          font-size: 1.1em;
+          margin-bottom: 25px;
+          color: #333; /* Default text color, overridden by dark-theme for dark mode */
+          font-weight: normal; /* Override bold from general p */
+      }
+
+      body.dark-theme .modal-content p {
+          color: #f0f0f0;
+      }
+
+      .modal-actions {
+          display: flex;
+          justify-content: center;
+          gap: 15px;
+      }
+
+      .modal-btn {
+          padding: 10px 25px;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.3s ease, transform 0.1s ease;
+      }
+
+      .modal-btn.confirm {
+          background-color: #007bff;
+          color: #fff;
+      }
+
+      .modal-btn.confirm:hover {
+          background-color: #0056b3;
+          transform: translateY(-1px);
+      }
+
+      .modal-btn.cancel {
+          background-color: #6c757d;
+          color: #fff;
+      }
+
+      .modal-btn.cancel:hover {
+          background-color: #5a6268;
+          transform: translateY(-1px);
+      }
+
+      body.dark-theme .modal-btn.confirm {
+        background-color: #007bff;
+      }
+      body.dark-theme .modal-btn.confirm:hover {
+        background-color: #0056b3;
+      }
+      body.dark-theme .modal-btn.cancel {
+        background-color: #5a6268;
+      }
+      body.dark-theme .modal-btn.cancel:hover {
+        background-color: #6c757d;
+      }
+
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlalK/4f0+90l8D/e/S1a+u0/z1E+a3a/t/b/X+n/W/R/2l/X/z/P/z+u/I/s/X/v/c/A/q/w/G/h/w/B/g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   </head>
   <body>
     <nav>
@@ -22,14 +551,15 @@
         <button class="nav-btn" onclick="goBack()">
           <i class="fas fa-arrow-left"></i> Back
         </button>
-        <div class="nav-buttons">
-          <button id="toggleTheme" class="toggle-btn">
-            <i class="fa-solid fa-cloud-sun"></i>
-            <!-- Sun icon for light mode -->
-          </button>
-        </div>
+        <!-- Theme toggle and Logout button now directly in nav-left -->
+        <button id="toggleTheme" class="toggle-btn">
+          <i class="fa-solid fa-cloud-sun"></i> <!-- Sun icon for light mode -->
+        </button>
+        <button class="nav-btn logout-btn" onclick="logout()">Logout</button>
       </div>
       <div class="user-info" id="user-info">
+        <!-- User email will be displayed here -->
+        <span id="user-email" class="user-display"></span>
         <button class="nav-btn" onclick="report()">Reports</button>
       </div>
       <div class="search-container">
@@ -46,12 +576,447 @@
       </div>
     </nav>
     <div id="inventory"></div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <p id="modalMessage"></p>
+        <div class="modal-actions">
+          <button id="modalConfirmBtn" class="modal-btn confirm">Yes</button>
+          <button id="modalCancelBtn" class="modal-btn cancel">No</button>
+        </div>
+      </div>
+    </div>
+    <!-- End Confirmation Modal -->
+
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+      // Your Firebase project configuration
+      const firebaseConfig = {
+          apiKey: "AIzaSyAq1n2IIwMauj8nj7dEyPSg7wsKVID3AT8",
+          authDomain: "chemical-inventory-e0681.firebaseapp.com",
+          databaseURL: "https://chemical-inventory-e0681-default-rtdb.firebaseio.com",
+          projectId: "chemical-inventory-e0681",
+          storageBucket: "chemical-inventory-e0681.appspot.com",
+          messagingSenderId: "1040891808880",
+          appId: "1:1040891808880:web:043585c0cff38d79a338b5",
+          measurementId: "G-HTH4QHPK6F"
+      };
+
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore(); // Initialize Firestore
+
+      let userId = null; // Will store the current user's UID
+      let chemicalToEdit = null; // To store the chemical name when modal is shown
+
+      // Elements for user info display
+      const userEmailSpan = document.getElementById('user-email');
+
+      // Modal elements
+      const confirmationModal = document.getElementById('confirmationModal');
+      const modalMessage = document.getElementById('modalMessage');
+      const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+      const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+      // --- Authentication Check ---
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          userId = user.uid;
+          userEmailSpan.innerText = user.email; // Display user email
+          console.log("Logged in as:", user.email, "UID:", userId);
+          // Now that we have the userId, render the user's chemicals
+          renderChemicals(); 
+        } else {
+          // User is NOT logged in, redirect to login page
+          console.log("No user logged in, redirecting to auth.html");
+          window.location.href = 'auth.html';
+        }
+      });
+
+      // Logout function
+      function logout() {
+        auth.signOut().then(() => {
+          console.log("User logged out successfully.");
+          showToast("Logged out successfully!", 'info');
+          // IMPORTANT: Redirect to login page immediately after successful logout
+          // This prevents the onAuthStateChanged on this page from briefly seeing a user
+          // and redirecting back.
+          window.location.href = 'auth.html'; 
+        }).catch((error) => {
+          console.error("Error signing out:", error);
+          showToast(`Error logging out: ${error.message}`, 'error');
+        });
+      }
+
+      // LIST OF ITEMS (LAB EQUIPMENT)  
+      const chemicals = [  
+        "Asbestos Sheet", "B.O.D. Bottle", "Burette 10mL", "Burette",  
+        "Burette Stand with Clip", "BOD Bottle", "Beaker 1000mL", "Beaker 500mL",  
+        "Beaker 250mL", "Beaker 100mL", "Beaker 25mL", "Beaker (some)",  
+        "Buchner Funnel (Small)", "Buchner Funnel (Big)", "Capillary Tube",  
+        "Conical Flask 1000mL", "Conical Flask 500mL", "Conical Flask 250mL",  
+        "Conical Flask 100mL", "Conical Flask with Gland", "Conical Flask with a Glee",  
+        "Conical Flask Wide Side", "Conical Flask (Tarsm)", "Crucible with Lid",  
+        "Congo Red Paper", "Cotton Bleached", "Dessicator", "Drop Bottle (Glass)",  
+        "Conical Flask (Nominal)", "Column Chromatography Flask", "Filter Flask (500mL)",  
+        "Fire Bucket with Sand", "Evaporating Dish", "First Aid Box", "Funnel",  
+        "Filter Paper", "Funnel 100mL", "Filter Flask 100mL", "Glass Funnel (Small Sink)",  
+        "Glass Column", "Gas Pipe", "Glass Rod", "Crucible (Couch Type)", "ICE Spot",  
+        "ID Jar", "IL Flask", "Landberger’s Apparatus", "Iodine Flask (Glass 2500mL)",  
+        "Measuring Cylinder", "Notice Board", "GIRAS 500mL", "Ostwald Viscometer",  
+        "Plastic Funnel (Big)", "Plastic Lid", "Measuring Cylinder (Plastic 100mL)",  
+        "Measuring Cylinder 10mL", "Measuring Cylinder 25mL", "Measuring Cylinder 50mL",  
+        "Measuring Cylinder 100mL", "Pipette 25mL", "Pipette 100mL", "Plastic Sample Bottle",  
+        "Pestle and Mortar", "Plastic Funnel (Small)", "Plastic Beaker 500mL",  
+        "Plastic Beaker 1L", "Pipe Clay Triangle", "Petri Dish", "Plastic Beaker 2500mL",  
+        "Plastic Beaker 250mL", "Plastic Water Bath", "Plastic Tray", "Rubber Cork",  
+        "Reagent Bottle", "Spatula (Metal)", "Test Tube Holder", "Reflux Condenser",  
+        "Spatula (Plastic)", "Test Tube Stand", "Rubber Tubing for Burette",  
+        "Steel Water Bath", "Thiele Tube", "Sodium Fusion Tube", "Scissors", "TLC Jar",  
+        "Round Bottom Flask (2 Neck)",  
+        "Specific Gravity Bottle", "Test Tube Box",  
+        "Round Bottom Flask 100mL", "Thermometer (110°C)", "Stalagmometer",  
+        "Thermometer (300°C)", "Separating Funnel", "Separating Funnel (M/S)",  
+        "Test Tube Brush 6", "Turmeric Paper", "Volumetric Flask 100mL",  
+        "Volumetric Flask 250mL", "Volumetric Flask 500mL", "Volumetric Flask 1000mL",  
+        "Volumetric Flask (Plastic 1000mL)", "Volumetric Flask (Plastic 500mL)",  
+        "Volumetric Flask (Glass 100mL)", "Viscometer 10mL", "Viscometer 25mL",  
+        "Wire Gauze", "White Can (5L)", "Wash Bottle (500mL Plastic)",  
+        "Whatman Filter Paper", "Watch Glass",  
+      ];  
+
+      const inventory = document.getElementById("inventory");  
+
+      // --- Toast Notification Functions ---  
+      const toastContainer = document.getElementById('toast-container');  
+
+      /** * Displays a toast notification.  
+       * @param {string} message The message to display in the toast.  
+       * @param {'success'|'error'|'info'} type The type of toast (affects styling).  
+       * @param {number} duration The duration in milliseconds for the toast to be visible (default: 3000).  
+       */  
+      function showToast(message, type = 'info', duration = 3000) {  
+        const toast = document.createElement('div');  
+        toast.className = `toast ${type}`;  
+        toast.textContent = message;  
+          
+        toastContainer.appendChild(toast);  
+
+        // Force reflow to ensure animation plays  
+        void toast.offsetWidth;   
+
+        toast.classList.add('show');  
+
+        setTimeout(() => {  
+          toast.classList.remove('show');  
+          toast.addEventListener('transitionend', () => toast.remove(), { once: true });  
+        }, duration);  
+      }  
+      // --- End Toast Notification Functions ---  
+
+      // Function to enable edit mode after confirmation
+      function enableEditMode(name) {
+          const safeKey = name.replace(/[.#$/\[\]]/g, "_");
+          const availInput = document.getElementById(`avail-${safeKey}`);
+          const editBtn = document.getElementById(`edit-avail-btn-${safeKey}`);
+
+          availInput.disabled = false;
+          editBtn.textContent = "Done";
+          editBtn.style.backgroundColor = '#28a745';
+          availInput.focus();
+          showToast(`You can now edit quantity for ${name}. Click Set when finished.`, 'info');
+      }
+
+      // Function to toggle edit mode for availability
+      function toggleEditMode(name) {
+          const safeKey = name.replace(/[.#$/\[\]]/g, "_");
+          const availInput = document.getElementById(`avail-${safeKey}`);
+          const isCurrentlyDisabled = availInput.disabled;
+
+          if (isCurrentlyDisabled) {
+              // If currently disabled, show confirmation modal
+              chemicalToEdit = name; // Store the chemical name
+              modalMessage.textContent = `Are you sure you want to edit the quantity for ${name}?`;
+              confirmationModal.classList.add('visible');
+          } else {
+              // If currently enabled (meaning "Done" was clicked), just exit edit mode
+              const editBtn = document.getElementById(`edit-avail-btn-${safeKey}`);
+              
+              availInput.disabled = true;
+              editBtn.textContent = "Edit";
+              editBtn.style.backgroundColor = '#6c757d';
+          }
+      }
+
+      // Modal button event listeners
+      modalConfirmBtn.addEventListener('click', () => {
+          if (chemicalToEdit) {
+              enableEditMode(chemicalToEdit);
+          }
+          confirmationModal.classList.remove('visible');
+          chemicalToEdit = null; // Clear the stored chemical name
+      });
+
+      modalCancelBtn.addEventListener('click', () => {
+          confirmationModal.classList.remove('visible');
+          chemicalToEdit = null; // Clear the stored chemical name
+      });
+
+
+      // Function to render chemicals based on a filter  
+      function renderChemicals(filter = "") {  
+        // Only proceed if userId is set (user is authenticated)  
+        if (!userId) {  
+            inventory.innerHTML = '<p style="text-align: center; padding: 50px;">Please log in to view your inventory.</p>';  
+            return;  
+        }  
+
+        inventory.innerHTML = ""; // Clear current inventory display  
+        const lowerCaseFilter = filter.toLowerCase();  
+
+        chemicals.forEach((name) => {  
+          if (lowerCaseFilter === "" || name.toLowerCase().includes(lowerCaseFilter)) {  
+            const safeKey = name.replace(/[.#$/\[\]]/g, "_");  
+
+            const div = document.createElement("div");  
+            div.className = "container"; // Initial class  
+            div.setAttribute('data-chemical-name', name); // Store original name for easy lookup  
+
+            div.innerHTML = `  
+              <h2>${name}</h2>  
+              <label for="avail-${safeKey}">Available:</label>  
+              <div class="input-group">  
+                <button onclick="setAvailable('${name}')" id="set-avail-btn-${safeKey}">Set</button>  
+                <input type="number" step="0.01" id="avail-${safeKey}" placeholder="Set quantity" disabled>
+                <button onclick="toggleEditMode('${name}')" id="edit-avail-btn-${safeKey}" class="edit-toggle-btn">Edit</button>
+              </div>  
+
+              <label for="use-${safeKey}">Use:</label>  
+              <div class="input-group">  
+                <button onclick="useQuantity('${name}')">Use</button>  
+                <input type="number" step="0.01" id="use-${safeKey}" placeholder="Quantity to use">  
+              </div>  
+              
+              <p id="status-${safeKey}">Loading...</p>  
+            `;  
+            inventory.appendChild(div);  
+
+            // Fetch data from Firestore for each chemical  
+            // Path: users/{userId}/chemicals/{chemicalId}  
+            const chemicalDocRef = db.collection("users").doc(userId).collection("chemicals").doc(safeKey);  
+            chemicalDocRef.onSnapshot((doc) => {  
+              const data = doc.data(); // Use .data() for Firestore document  
+              const availInput = document.getElementById(`avail-${safeKey}`);  
+              const statusParagraph = document.getElementById(`status-${safeKey}`);  
+              const containerDiv = availInput ? availInput.closest('.container') : null; // Check if availInput exists  
+              const editBtn = document.getElementById(`edit-avail-btn-${safeKey}`);
+
+
+              if (availInput && statusParagraph && containerDiv && editBtn) { // Ensure all elements exist before manipulating
+                  if (data && data.available !== undefined) {  
+                    const currentAvailable = data.available;  
+
+                    availInput.value = currentAvailable;  
+                    statusParagraph.innerText = `Available: ${currentAvailable} units`;  
+                    
+                    // Check for low stock and apply/remove red class  
+                    if (currentAvailable < 12) {  
+                      containerDiv.classList.add('low-stock');  
+                      // If low stock, make it immediately editable (input enabled) and show toast
+                      availInput.disabled = false; 
+                      editBtn.textContent = "Done"; // Set edit button to "Done" state
+                      editBtn.style.backgroundColor = '#28a745'; // Green for "Done"
+                      showToast(`Low stock for ${name}! Available: ${currentAvailable} units. Please update.`, 'error', 7000);
+                    } else {  
+                      containerDiv.classList.remove('low-stock');  
+                      // If sufficient stock, keep it disabled until Edit is clicked
+                      availInput.disabled = true; 
+                      editBtn.textContent = "Edit"; // Set edit button to "Edit" state
+                      editBtn.style.backgroundColor = '#6c757d'; // Reset background color to gray
+                    }  
+                  } else {  
+                    statusParagraph.innerText = `Available: Not Set`;  
+                    containerDiv.classList.remove('low-stock'); // Ensure no red if not set  
+                    availInput.disabled = false; // Always enabled if not set
+                    editBtn.textContent = "Done"; // If not set, it's implicitly in an "editable" state
+                    editBtn.style.backgroundColor = '#28a745'; // Green for "Done"
+                    // Removed the "Quantity for name is not set" toast here
+                  }  
+              }  
+            }, (error) => {  
+              console.error("Error fetching chemical data from Firestore:", error);  
+              const statusParagraph = document.getElementById(`status-${safeKey}`);  
+              if (statusParagraph) statusParagraph.innerText = "Error loading data.";  
+              showToast(`Error loading ${name} data.`, 'error');  
+            });  
+          }  
+        });  
+      }  
+
+      // Function to set available quantity and record timestamp (Firestore)  
+      async function setAvailable(name) {  
+        if (!userId) {  
+            console.error("No user logged in to set available quantity.");  
+            window.location.href = 'auth.html';  
+            return;  
+        }  
+        const safeKey = name.replace(/[.#$/\[\]]/g, "_");  
+        const qtyInput = document.getElementById(`avail-${safeKey}`);  
+        const editBtn = document.getElementById(`edit-avail-btn-${safeKey}`);
+
+        const qty = parseFloat(qtyInput.value);  
+
+        if (!isNaN(qty)) {  
+          const chemicalDocRef = db.collection("users").doc(userId).collection("chemicals").doc(safeKey);  
+          await chemicalDocRef.set({ // Use set for initial creation, merge for updating  
+            available: qty,  
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp() // Firestore timestamp  
+          }, { merge: true }).then(() => {  
+            console.log("Available quantity set for", name, ":", qty, "units");  
+            showToast(`${name} available quantity set to ${qty} units.`, 'success');  
+
+            // After setting, disable the input and reset the edit button
+            qtyInput.disabled = true;
+            editBtn.textContent = "Edit";
+            editBtn.style.backgroundColor = '#6c757d'; // Reset background color to gray
+          }).catch(error => {  
+            console.error("Error setting available quantity:", error);  
+            showToast(`Error setting ${name} quantity: ${error.message}`, 'error');  
+          });  
+        } else {  
+          console.error("Invalid quantity for setting available:", name, qtyInput.value);  
+          showToast('Please enter a valid quantity for setting.', 'error');  
+        }  
+      }  
+
+      // Function to use quantity and record timestamp (Firestore)  
+      async function useQuantity(name) {  
+        if (!userId) {  
+            console.error("No user logged in to use quantity.");  
+            window.location.href = 'auth.html';  
+            return;  
+        }  
+        const safeKey = name.replace(/[.#$/\[\]]/g, "_");  
+        const useQtyInput = document.getElementById(`use-${safeKey}`);  
+        const useQty = parseInt(useQtyInput.value);  
+
+        if (isNaN(useQty) || useQty <= 0) {  
+            console.error("Invalid quantity for using:", name, useQtyInput.value);  
+            showToast('Please enter a valid quantity to use (greater than 0).', 'error');  
+            return;  
+        }  
+
+        const chemicalDocRef = db.collection("users").doc(userId).collection("chemicals").doc(safeKey);  
+        try {  
+            const doc = await chemicalDocRef.get();  
+            const data = doc.data();  
+
+            if (data && data.available !== undefined) {  
+                let currentAvailable = data.available;  
+                
+                if (currentAvailable >= useQty) {  
+                    const newQty = currentAvailable - useQty;  
+                    await chemicalDocRef.update({ // Use update for changing existing fields  
+                        available: newQty,  
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp() // Firestore timestamp  
+                    });  
+                    useQtyInput.value = ""; // Clear use input after successful use  
+                    console.log("Quantity used for", name);  
+                    showToast(`Used ${useQty} units of ${name}. Remaining: ${newQty} units.`, 'success');  
+                } else {  
+                    const errorMessage = `Not enough available! Has: ${currentAvailable} units, Need: ${useQty} units`;  
+                    console.warn(errorMessage);  
+                    showToast(errorMessage, 'error', 5000); // Longer toast for errors  
+                }  
+            } else {  
+                const errorMessage = `Available quantity for ${name} is not set. Cannot use.`;  
+                console.warn(errorMessage);  
+                showToast(errorMessage, 'error');  
+            }  
+        } catch (error) {  
+            console.error("Error using quantity:", error);  
+            showToast(`Error using quantity: ${error.message}`, 'error');  
+        }  
+      }  
+
+      // Modified searchChemicals function  
+      function searchChemicals() {  
+        const searchInput = document.getElementById("searchInput").value;  
+        renderChemicals(searchInput); // Re-render with the search filter  
+      }  
+
+      // Function to navigate back (for the back button in Reports page too)  
+      function goBack() {  
+        window.history.back(); // Goes back to the previous page in history  
+      }  
+
+      // Function to navigate to the Reports page  
+      function report() {  
+        window.location.href = 'item-report.html'; // Navigate to the new reports page  
+      }  
+
+      // --- Theme Toggling Logic ---  
+      const toggleThemeBtn = document.getElementById('toggleTheme');  
+      const body = document.body;  
+      const themeIcon = toggleThemeBtn.querySelector('i');  
+
+      // Function to apply theme  
+      function applyTheme(theme) {  
+        if (theme === 'dark') {  
+          body.classList.add('dark-theme');  
+          themeIcon.classList.remove('fa-cloud-sun');  
+          themeIcon.classList.add('fa-moon');  
+          localStorage.setItem('theme', 'dark'); // Save theme preference  
+        } else {  
+          body.classList.remove('dark-theme');  
+          themeIcon.classList.remove('fa-moon');  
+          themeIcon.classList.add('fa-cloud-sun');  
+          localStorage.setItem('theme', 'light'); // Save theme preference  
+        }  
+      }  
+
+      // Load saved theme from localStorage or default to light/system preference  
+      document.addEventListener('DOMContentLoaded', () => {  
+        const savedTheme = localStorage.getItem('theme');  
+        if (savedTheme) {  
+          applyTheme(savedTheme);  
+        } else {  
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+              applyTheme('dark');
+          } else {
+              applyTheme('light'); // Default theme
+          }
+        }
+      });
+
+      // Toggle theme on button click
+      toggleThemeBtn.addEventListener('click', function() {
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'light') {
+            applyTheme('dark');
+        } else {
+            applyTheme('light');
+        }
+      });
+      // --- End Theme Toggling Logic ---
+    </script>
+    <!-- 
+      IMPORTANT: You MUST replace the 'a076d05399' with YOUR ACTUAL Font Awesome Kit ID.
+      Go to fontawesome.com, sign in, and find your kit's embed code.
+      If this link is incorrect, the icons (like the sun/moon toggle button) will not be visible.
+    -->
     <script
       src="https://kit.fontawesome.com/a076d05399.js"
       crossorigin="anonymous"
     ></script>
-    <script src="items.js"></script>
   </body>
 </html>

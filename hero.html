@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Chemical Tracker</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Nunito", sans-serif;
+        background-color: #f0f0f0;
+        color: #2c3e50;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Dark/Black Theme Styles */
+      body.dark-theme {
+        background-color: #1a1a1a;
+        color: #f0f0f0;
+      }
+
+      body.dark-theme .navbar {
+        background-color: #222222;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        border-bottom: 1px solid #111111;
+      }
+
+      body.dark-theme .navbar-logo h1 {
+        color: #f0f0f0;
+      }
+
+      body.dark-theme .dashboard-container {
+        background-color: #2a2a2a;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        border: 1px solid #3a3a3a;
+      }
+
+      body.dark-theme h1,
+      body.dark-theme h2,
+      body.dark-theme h3 {
+        color: #f0f0f0;
+      }
+
+      body.dark-theme .metric-card,
+      body.dark-theme .section-card {
+        background-color: #2a2a2a;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        border: 1px solid #3a3a3a;
+      }
+
+      body.dark-theme .metric-card p,
+      body.dark-theme .section-card p,
+      body.dark-theme .section-card li {
+        color: #bbbbbb;
+      }
+
+      body.dark-theme .list-item.low-stock {
+        background-color: #4a2b2b; /* Darker red */
+      }
+      body.dark-theme .list-item.expiring-soon {
+        background-color: #4a422b; /* Darker orange */
+      }
+
+      body.dark-theme .status-badge.low-stock {
+        background-color: #e74c3c;
+      }
+      body.dark-theme .status-badge.expiring-soon {
+        background-color: #f39c12;
+      }
+      body.dark-theme .status-badge.normal-stock {
+        background-color: #28a745; /* Darker green */
+      }
+      body.dark-theme .status-badge.expired {
+        background-color: #922b21; /* Darker red for expired */
+      }
+
+      body.dark-theme .back-btn {
+        background-color: #555;
+      }
+      body.dark-theme .back-btn:hover {
+        background-color: #444;
+      }
+      body.dark-theme .back-btn:active {
+        background-color: #333;
+      }
+
+      body.dark-theme .settings-modal {
+        background-color: #2a2a2a; /* Darker modal background */
+        border: 1px solid #3a3a3a;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
+      }
+
+      body.dark-theme .settings-modal .user-details span:first-child {
+        color: #f0f0f0; /* Light text for names in dark mode */
+      }
+      body.dark-theme .settings-modal .user-details span {
+        color: #cccccc; /* Slightly lighter grey for emails/subtext */
+      }
+
+      body.dark-theme .settings-modal .logout-btn {
+        background-color: #a93226; /* Darker red for logout in dark mode */
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+      }
+
+      body.dark-theme .logout-btn:hover {
+        background-color: #8c2a1f;
+        box-shadow: 0 4px 7px rgba(0, 0, 0, 0.4);
+      }
+
+      body.dark-theme .logout-btn:active {
+        background-color: #7a221a;
+      }
+
+      body.dark-theme .settings-modal .theme-toggle-container button {
+        background-color: #34495e; /* Darker background for theme toggle button */
+        color: #f0f0f0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      body.dark-theme .settings-modal .theme-toggle-container button:hover {
+        background-color: #2c3e50;
+      }
+
+      body.dark-theme .settings-btn {
+        color: #f0f0f0; /* Light icon for dark theme settings button */
+      }
+
+      body.dark-theme .settings-btn:hover {
+        color: #ffffff;
+      }
+
+      .navbar {
+        background-color: #ffffff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .navbar-logo {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .navbar-logo i {
+        font-size: 2.25rem;
+        color: #3498db;
+      }
+
+      .navbar-logo h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 0;
+      }
+
+      .navbar-right {
+        position: relative; /* Needed for positioning the modal */
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .settings-btn {
+        background: none;
+        border: none;
+        color: #6c757d;
+        font-size: 1.75rem;
+        cursor: pointer;
+        outline: none;
+        transition: color 0.3s ease, transform 0.1s ease;
+        padding: 5px;
+        border-radius: 50%;
+      }
+
+      .settings-btn:hover {
+        color: #495057;
+        transform: scale(1.1);
+        background-color: rgba(108, 117, 125, 0.1);
+      }
+
+      /* Settings Modal Styles */
+      .settings-modal {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.75rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        padding: 1.5rem;
+        min-width: 280px;
+        z-index: 100;
+        display: none;
+        flex-direction: column;
+        gap: 1.5rem;
+        animation: fadeIn 0.2s ease-out forwards;
+      }
+
+      .settings-modal.show {
+        display: flex;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .settings-modal .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      body.dark-theme .settings-modal .user-info {
+        border-bottom: 1px solid #3a3a3a;
+      }
+
+      .settings-modal .user-icon {
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 50%;
+        background-color: #bdc3c7;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.75rem;
+        color: #ffffff;
+      }
+
+      .settings-modal .user-details {
+        text-align: left;
+      }
+
+      .settings-modal .user-details span {
+        display: block;
+        font-size: 0.875rem;
+        color: #555555;
+      }
+
+      .settings-modal .user-details span:first-child {
+        font-weight: 600;
+      }
+
+      .settings-modal .theme-toggle-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      body.dark-theme .settings-modal .theme-toggle-container {
+        border-bottom: 1px solid #3a3a3a;
+      }
+
+      .settings-modal .theme-toggle-container span {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      body.dark-theme .settings-modal .theme-toggle-container span {
+        color: #f0f0f0;
+      }
+
+      .settings-modal .theme-toggle-container button {
+        background-color: #3498db;
+        color: #ffffff;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease,
+          transform 0.1s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .settings-modal .theme-toggle-container button:hover {
+        background-color: #2980b9;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        transform: translateY(-1px);
+      }
+
+      .settings-modal .theme-toggle-container button:active {
+        background-color: #2471a3;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        transform: translateY(0);
+      }
+
+      .settings-modal .logout-btn {
+        background-color: #e74c3c;
+        color: #ffffff;
+        padding: 0.8rem 1.75rem;
+        border-radius: 0.5rem;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease,
+          transform 0.1s ease;
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+        width: 100%;
+      }
+
+      .settings-modal .logout-btn:hover {
+        background-color: #c0392b;
+        box-shadow: 0 4px 7px rgba(0, 0, 0, 0.15);
+        transform: translateY(-1px);
+      }
+
+      .settings-modal .logout-btn:active {
+        background-color: #a93226;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        transform: translateY(0);
+      }
+
+      .dashboard-main-content {
+        padding: 2rem;
+        flex-grow: 1; /* Allows content to take available space */
+      }
+
+      .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 2.5rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #3498db;
+        margin-bottom: 2rem;
+        font-size: 2.5rem;
+      }
+
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .metric-card {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        transition: transform 0.2s ease;
+      }
+
+      .metric-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .metric-card h2 {
+        font-size: 1.2rem;
+        color: #34495e;
+        margin-bottom: 0.5rem;
+      }
+
+      .metric-card p {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #3498db;
+        margin: 0;
+      }
+
+      .dashboard-sections {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+      }
+
+      .section-card {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        padding: 1.75rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease;
+      }
+
+      .section-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .section-card h3 {
+        font-size: 1.5rem;
+        color: #3498db;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+      }
+
+      .section-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .section-card li {
+        padding: 0.8rem 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1rem;
+        color: #555;
+      }
+
+      .section-card li:last-child {
+        border-bottom: none;
+      }
+
+      .list-item-info {
+        flex-grow: 1;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 0.3em 0.7em;
+        border-radius: 0.3em;
+        font-size: 0.75em;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: white;
+        margin-left: 0.5rem;
+      }
+
+      .status-badge.low-stock {
+        background-color: #e74c3c;
+      }
+      .status-badge.expiring-soon {
+        background-color: #f1c40f;
+      }
+      .status-badge.expired {
+        background-color: #c0392b;
+      }
+      .status-badge.normal-stock {
+        background-color: #2ecc71;
+      }
+
+      .recent-activity-list li {
+        flex-direction: column; /* Stack name and details */
+        align-items: flex-start;
+      }
+
+      .activity-details {
+        font-size: 0.9em;
+        color: #7f8c8d;
+        margin-top: 0.2em;
+      }
+
+      .back-btn {
+        display: block;
+        width: fit-content;
+        margin: 2rem auto 0;
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        background-color: #95a5a6;
+        color: white;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.1s ease,
+          box-shadow 0.3s ease;
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+      }
+      .back-btn:hover {
+        background-color: #7f8c8d;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 7px rgba(0, 0, 0, 0.15);
+      }
+      .back-btn:active {
+        background-color: #6c7a89;
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .message-box {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #4CAF50; /* Green for success */
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+      }
+
+      .message-box.error {
+        background-color: #f44336; /* Red for error */
+      }
+
+      .message-box.show {
+        display: block;
+        opacity: 1;
+      }
+
+
+      @media (max-width: 768px) {
+        .navbar {
+          flex-direction: column;
+          gap: 1rem;
+          padding: 1rem;
+        }
+
+        .navbar-right {
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+        }
+
+        .settings-modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          border-radius: 0;
+          padding: 2rem;
+          justify-content: center;
+          align-items: center;
+          gap: 2rem;
+        }
+
+        .dashboard-main-content {
+          padding: 1.5rem;
+        }
+
+        .metrics-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .dashboard-sections {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="navbar-logo">
+        <i class="fa-solid fa-flask-vial"></i>
+        <h1>Chemical Tracker</h1>
+      </div>
+      <div class="navbar-right">
+        <button id="settingsBtn" class="settings-btn">
+          <i class="fas fa-cog"></i>
+        </button>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="settings-modal">
+          <div class="user-info">
+            <div class="user-icon">
+              <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="user-details">
+              <span class="user-name" id="user-name-display">Guest</span>
+              <span class="user-email" id="user-email-display">-</span>
+            </div>
+          </div>
+
+          <div class="theme-toggle-container">
+            <span>Theme:</span>
+            <button id="toggleTheme" class="toggle-btn">
+              <i class="fa-solid fa-cloud-sun"></i>
+              <span>Light</span>
+            </button>
+          </div>
+
+          <button class="logout-btn" id="logoutButton">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="dashboard-main-content">
+      <div class="dashboard-container">
+        <h1><i class="fas fa-chart-line"></i> Dashboard Overview</h1>
+
+        <div class="metrics-grid">
+          <!-- Separated metrics for chemicals and items -->
+          <div class="metric-card">
+            <h2>Total Chemicals</h2>
+            <p id="totalChemicalsCount">0</p>
+          </div>
+          <div class="metric-card">
+            <h2>Total Items</h2>
+            <p id="totalItemsCount">0</p>
+          </div>
+          <div class="metric-card">
+            <h2>Low Stock Alerts</h2>
+            <p id="lowStockCount">0</p>
+          </div>
+          <div class="metric-card">
+            <h2>Expiring Soon</h2>
+            <p id="expiringSoonCount">0</p>
+          </div>
+        </div>
+
+        <div class="dashboard-sections">
+          <div class="section-card">
+            <h3><i class="fas fa-exclamation-triangle"></i> Low Stock Items</h3>
+            <ul id="lowStockList">
+              <li>Loading low stock items...</li>
+            </ul>
+          </div>
+
+          <div class="section-card">
+            <h3><i class="fas fa-calendar-times"></i> Expiring Soon</h3>
+            <ul id="expiringSoonList">
+              <li>Loading expiring items...</li>
+            </ul>
+          </div>
+
+          <div class="section-card">
+            <h3><i class="fas fa-history"></i> Recent Activity</h3>
+            <ul id="recentActivityList">
+              <li>Loading recent activity...</li>
+            </ul>
+          </div>
+        </div>
+
+        <button type="button" class="back-btn" onclick="history.back()">
+          <i class="fas fa-arrow-left"></i> Back to Home
+        </button>
+      </div>
+    </main>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+      // MANDATORY: Get app ID and Firebase config from global variables
+      const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+      // Firebase configuration - REPLACE WITH YOUR ACTUAL PROJECT CONFIG
+      const firebaseConfig = {
+        apiKey: "AIzaSyAq1n2IIwMauj8nj7dEyPSg7wsKVID3AT8",
+        authDomain: "chemical-inventory-e0681.firebaseapp.com",
+        databaseURL: "https://chemical-inventory-e0681-default-rtdb.firebaseio.com",
+        projectId: "chemical-inventory-e0681",
+        storageBucket: "chemical-inventory-e0681.appspot.com",
+        messagingSenderId: "1040891808880",
+        appId: "1:1040891808880:web:043585c0cff38d79a338b5",
+        measurementId: "G-HTH4QHPK6F",
+      };
+
+      let app;
+      let auth;
+      let db;
+      let currentUserId = null;
+      let currentUserName = "Guest"; // Default name
+
+      // Message Box functionality
+      const messageBox = document.getElementById('messageBox');
+      function showMessage(message, isError = false) {
+        messageBox.innerText = message;
+        messageBox.classList.remove('error');
+        if (isError) {
+          messageBox.classList.add('error');
+        }
+        messageBox.classList.add('show');
+        setTimeout(() => {
+          messageBox.classList.remove('show');
+        }, 3000);
+      }
+
+      // Initialize Firebase only if config is available and not using the default placeholder check
+      if (Object.keys(firebaseConfig).length > 0 && firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") { // Ensure apiKey is not empty placeholder
+        app = firebase.initializeApp(firebaseConfig);
+        auth = firebase.auth();
+        db = firebase.firestore();
+
+        // Sign in anonymously if no initial auth token
+        const signInUser = async () => {
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            if (initialAuthToken) {
+                try {
+                    await auth.signInWithCustomToken(initialAuthToken);
+                    console.log("Signed in with custom token.");
+                } catch (error) {
+                    console.error("Error signing in with custom token:", error);
+                    await auth.signInAnonymously();
+                    console.log("Signed in anonymously due to custom token error.");
+                }
+            } else {
+                await auth.signInAnonymously();
+                console.log("Signed in anonymously.");
+            }
+        };
+
+        // Ensure user is authenticated before proceeding
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                currentUserId = user.uid;
+                currentUserName = user.displayName || "User";
+                document.getElementById('user-email-display').innerText = user.email || '-';
+                console.log("Dashboard: Authenticated user:", user.email || "anonymous", "UID:", user.uid);
+
+                // Fetch user's full name from Firestore for display
+                try {
+                    const userProfileDocRef = db.collection(`artifacts/${appId}/users/${currentUserId}/profile`).doc('details');
+                    const userDoc = await userProfileDocRef.get();
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        const firstName = userData.firstName || '';
+                        const lastName = userData.lastName || '';
+                        const fullName = `${firstName} ${lastName}`.trim();
+                        if (fullName) {
+                            currentUserName = fullName;
+                        }
+                    }
+                } catch (error) {
+                    console.warn("Could not fetch user profile from Firestore:", error);
+                }
+                document.getElementById('user-name-display').innerText = currentUserName;
+
+                // Load dashboard data once authenticated
+                loadDashboardData();
+
+            } else {
+                console.log("No user logged in. Redirecting to login-a.html");
+                window.location.href = 'login-a.html'; // Redirect to login page
+            }
+        });
+
+        // Call the sign-in function on page load
+        signInUser();
+
+      } else {
+        console.error("Firebase config is not properly set. Please update firebaseConfig with your actual project details.");
+        document.body.innerHTML = '<p style="text-align:center; color: red;">Application not configured. Please update Firebase config in the script.</p>';
+      }
+
+      // DOM elements for dashboard metrics and lists
+      const totalChemicalsCount = document.getElementById('totalChemicalsCount'); // New
+      const totalItemsCount = document.getElementById('totalItemsCount');     // New
+      const lowStockCount = document.getElementById('lowStockCount');
+      const expiringSoonCount = document.getElementById('expiringSoonCount');
+      const lowStockList = document.getElementById('lowStockList');
+      const expiringSoonList = document.getElementById('expiringSoonList');
+      const recentActivityList = document.getElementById('recentActivityList');
+
+      // Default low stock threshold if not defined per item
+      const DEFAULT_LOW_STOCK_THRESHOLD_DASHBOARD = 12; // Aligned with your item page's hardcoded '12'
+
+      // Number of days to consider 'expiring soon'
+      const EXPIRY_WARNING_DAYS = 60; // 60 days
+
+      // Function to load all dashboard data
+      function loadDashboardData() {
+        if (!db || !currentUserId) {
+            console.error("Firestore or user not initialized. Cannot load dashboard data.");
+            // Set default messages if data cannot be loaded
+            totalChemicalsCount.innerText = 'N/A'; // Update new fields
+            totalItemsCount.innerText = 'N/A';     // Update new fields
+            lowStockCount.innerText = 'N/A';
+            expiringSoonCount.innerText = 'N/A';
+            lowStockList.innerHTML = '<li>Cannot load low stock items (authentication/DB issue).</li>';
+            expiringSoonList.innerHTML = '<li>Cannot load expiring items (authentication/DB issue).</li>';
+            recentActivityList.innerHTML = '<li>Cannot load recent activity (authentication/DB issue).</li>';
+            return;
+        }
+
+        // --- IMPORTANT: This collection path now matches your item page structure ---
+        // Chemicals/Items are assumed to be stored under db.collection("users").doc(currentUserId).collection("chemicals")
+        const inventoryRef = db.collection("users").doc(currentUserId).collection("chemicals");
+        // Keeping usage logs as a top-level collection within artifacts/${appId}
+        // If your usage logs are also under `users/{userId}/`, please specify that.
+        const usageLogsRef = db.collection(`artifacts/${appId}/usage_logs`);
+
+
+        // Real-time listener for Inventory Data
+        inventoryRef.onSnapshot(snapshot => {
+          const allItems = [];
+          snapshot.forEach(doc => {
+            allItems.push({ id: doc.id, ...doc.data() });
+          });
+          updateInventoryMetrics(allItems);
+          renderLowStockAndExpiringItems(allItems);
+        }, error => {
+          console.error("Error fetching inventory data:", error);
+          showMessage("Error loading inventory data. Check console for details.", true);
+          totalChemicalsCount.innerText = 'Err'; // Update new fields
+          totalItemsCount.innerText = 'Err';     // Update new fields
+          lowStockCount.innerText = 'Err';
+          expiringSoonCount.innerText = 'Err';
+          lowStockList.innerHTML = '<li>Failed to load low stock items.</li>';
+          expiringSoonList.innerHTML = '<li>Failed to load expiring items.</li>';
+        });
+
+        // Real-time listener for Usage Logs
+        // This query often requires an index. Check your console for a link to create it.
+        usageLogsRef.orderBy('timestamp', 'desc').limit(10).onSnapshot(snapshot => {
+          const recentActivities = [];
+          snapshot.forEach(doc => {
+            recentActivities.push({ id: doc.id, ...doc.data() });
+          });
+          renderRecentActivity(recentActivities);
+        }, error => {
+          console.error("Error fetching recent activity:", error);
+          showMessage("Error loading recent activity. Check console for details.", true);
+          recentActivityList.innerHTML = '<li>Failed to load recent activity.</li>';
+        });
+      }
+
+      // Function to update metric cards
+      function updateInventoryMetrics(items) {
+        let totalChemicals = 0;
+        let totalItems = 0;
+        let lowStock = 0;
+        let expiringSoon = 0;
+        const now = new Date();
+        const warningDate = new Date();
+        warningDate.setDate(now.getDate() + EXPIRY_WARNING_DAYS);
+
+        items.forEach(item => {
+          // Determine if it's a chemical or item based on 'category' field
+          // Default to 'unknown' if category is not defined or unrecognized
+          const category = item.category ? item.category.toLowerCase() : 'unknown';
+          console.log(`Processing item: ${item.name || item.id}, Category: ${category}`);
+
+          if (category === 'chemical') {
+            totalChemicals++;
+          } else if (category === 'item') {
+            totalItems++;
+          }
+          // If category is 'unknown', it won't be counted in either specific total,
+          // but will still be processed for low stock/expiry.
+
+          // Use 'available' field from your item page, falling back to 'currentQuantity' if needed.
+          const currentQuantity = item.available !== undefined ? item.available : item.currentQuantity;
+
+          // Prioritize item-specific lowStockThreshold, fall back to DEFAULT_LOW_STOCK_THRESHOLD_DASHBOARD (12)
+          const threshold = typeof item.lowStockThreshold === 'number' ? item.lowStockThreshold : DEFAULT_LOW_STOCK_THRESHOLD_DASHBOARD;
+
+          console.log(`  Quantity: ${currentQuantity}, Threshold: ${threshold}`);
+
+          if (currentQuantity !== undefined && currentQuantity !== null && currentQuantity <= threshold) {
+            lowStock++;
+            console.log(`  ${item.name || item.id} is LOW STOCK!`);
+          }
+
+          if (item.expiryDate && item.expiryDate.toDate) { // Check if it's a Firestore Timestamp
+            const expiry = item.expiryDate.toDate();
+            if (expiry < now) { // Expired
+                expiringSoon++; // Count as expiring soon if already expired
+                console.log(`  ${item.name || item.id} is EXPIRED!`);
+            } else if (expiry <= warningDate) { // Expiring soon within warning period
+                expiringSoon++;
+                console.log(`  ${item.name || item.id} is EXPIRING SOON!`);
+            }
+          }
+        });
+        totalChemicalsCount.innerText = totalChemicals; // Update new fields
+        totalItemsCount.innerText = totalItems;         // Update new fields
+        lowStockCount.innerText = lowStock;
+        expiringSoonCount.innerText = expiringSoon;
+      }
+
+      // Function to render low stock and expiring soon lists
+      function renderLowStockAndExpiringItems(items) {
+        lowStockList.innerHTML = ''; // Clear previous items
+        expiringSoonList.innerHTML = ''; // Clear previous items
+
+        let hasLowStock = false;
+        let hasExpiringSoon = false;
+
+        const now = new Date();
+        const warningDate = new Date();
+        warningDate.setDate(now.getDate() + EXPIRY_WARNING_DAYS);
+
+        items.forEach(item => {
+          // Use 'available' field from your item page, falling back to 'currentQuantity' if needed.
+          const currentQuantity = item.available !== undefined ? item.available : item.currentQuantity;
+          // Prioritize item-specific lowStockThreshold, fall back to DEFAULT_LOW_STOCK_THRESHOLD_DASHBOARD (12)
+          const threshold = typeof item.lowStockThreshold === 'number' ? item.lowStockThreshold : DEFAULT_LOW_STOCK_THRESHOLD_DASHBOARD;
+
+
+          // Low Stock
+          if (currentQuantity !== undefined && currentQuantity !== null && currentQuantity <= threshold) {
+            hasLowStock = true;
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <span>${item.name || item.id}</span>
+              <span class="status-badge low-stock">Low: ${currentQuantity} ${item.unit || ''}</span>
+            `;
+            lowStockList.appendChild(li);
+          }
+
+          // Expiring Soon
+          if (item.expiryDate && item.expiryDate.toDate) {
+            const expiry = item.expiryDate.toDate();
+            if (expiry < now) { // Expired
+                hasExpiringSoon = true;
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${item.name || item.id}</span>
+                    <span class="status-badge expired">Expired: ${expiry.toLocaleDateString()}</span>
+                `;
+                expiringSoonList.appendChild(li);
+            } else if (expiry <= warningDate) { // Expiring soon
+                hasExpiringSoon = true;
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${item.name || item.id}</span>
+                    <span class="status-badge expiring-soon">Expires: ${expiry.toLocaleDateString()}</span>
+                `;
+                expiringSoonList.appendChild(li);
+            }
+          }
+        });
+
+        if (!hasLowStock) {
+          lowStockList.innerHTML = '<li>No low stock items found.</li>';
+        }
+        if (!hasExpiringSoon) {
+          expiringSoonList.innerHTML = '<li>No items expiring soon or expired.</li>';
+        }
+      }
+
+      // Function to render recent activity
+      function renderRecentActivity(activities) {
+        recentActivityList.innerHTML = ''; // Clear previous activities
+        if (activities.length === 0) {
+          recentActivityList.innerHTML = '<li>No recent activity.</li>';
+          return;
+        }
+
+        activities.forEach(activity => {
+          const li = document.createElement('li');
+          const date = activity.timestamp ? new Date(activity.timestamp.toDate()).toLocaleString() : 'N/A';
+          li.innerHTML = `
+            <div class="list-item-info">
+                <strong>${activity.itemName}</strong>
+                <div class="activity-details">Used ${activity.quantityUsed} by ${activity.usedByName || 'Unknown'} on ${date}</div>
+            </div>
+          `;
+          recentActivityList.appendChild(li);
+        });
+      }
+
+
+      // --- Theme Toggling Logic (Copied from main app for consistency) ---
+      const toggleThemeBtn = document.getElementById('toggleTheme');
+      const body = document.body;
+      const themeIcon = toggleThemeBtn ? toggleThemeBtn.querySelector('i') : null;
+      const themeText = toggleThemeBtn ? toggleThemeBtn.querySelector('span') : null;
+
+      function applyTheme(theme) {
+          if (body) {
+            if (theme === 'dark') {
+                body.classList.add('dark-theme');
+                if (themeIcon) themeIcon.classList.remove('fa-cloud-sun');
+                if (themeIcon) themeIcon.classList.add('fa-moon');
+                if (themeText) themeText.innerText = 'Dark';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.remove('dark-theme');
+                if (themeIcon) themeIcon.classList.remove('fa-moon');
+                if (themeIcon) themeIcon.classList.add('fa-cloud-sun');
+                if (themeText) themeText.innerText = 'Light';
+                localStorage.setItem('theme', 'light');
+            }
+          }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+          const savedTheme = localStorage.getItem('theme');
+          if (savedTheme) {
+              applyTheme(savedTheme);
+          } else {
+              if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                  applyTheme('dark');
+              } else {
+                  applyTheme('light');
+              }
+          }
+      });
+
+      if (toggleThemeBtn) {
+        toggleThemeBtn.addEventListener('click', function() {
+            const currentTheme = localStorage.getItem('theme');
+            if (currentTheme === 'dark') {
+                applyTheme('light');
+            } else {
+                applyTheme('dark');
+            }
+        });
+      }
+      // --- End Theme Toggling Logic ---
+
+      // --- Settings Modal Toggling Logic (Copied from main app for consistency) ---
+      const settingsBtn = document.getElementById('settingsBtn');
+      const settingsModal = document.getElementById('settingsModal');
+      const logoutButton = document.getElementById('logoutButton');
+
+      if (settingsBtn && settingsModal) {
+        settingsBtn.addEventListener('click', function(event) {
+          event.stopPropagation();
+          settingsModal.classList.toggle('show');
+        });
+
+        document.addEventListener('click', function(event) {
+          if (!settingsModal.contains(event.target) && !settingsBtn.contains(event.target)) {
+            settingsModal.classList.remove('show');
+          }
+        });
+      }
+
+      if (logoutButton) {
+        logoutButton.addEventListener('click', () => {
+          if (auth) {
+            auth.signOut().then(() => {
+              console.log("User logged out successfully.");
+              window.location.href = 'login-a.html';
+            }).catch((error) => {
+              console.error("Error signing out:", error);
+            });
+          } else {
+              console.error("Firebase Auth not initialized. Cannot log out.");
+          }
+        });
+      }
+      // --- End Settings Modal Toggling Logic ---
+    </script>
+  </body>
+</html>

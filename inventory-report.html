@@ -1,122 +1,733 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chemical Report Dashboard</title>
-  <link rel="stylesheet" href="inventory-report.css">
-</head>
-<body>
-  <nav>
-    <div class="nav-left">
-      <button class="nav-btn" onclick="goBack()">
-        <i class="fas fa-arrow-left"></i> Back
-      <!-- </button>
-      <div class="nav-buttons"> 
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chemical & Item Inventory Reports</title>
+    <style>
+      /* General Layout & Theming */
+      html, body {
+        width: 100%;
+        min-height: 100vh;
+        overflow-x: hidden; /* Ensure no horizontal scroll */
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background: #ffffff; /* Set body background to white by default */
+        color: #333;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        display: flex;
+        flex-direction: column;
+      }
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+
+      /* Dark Theme Styles - Adapted for the Reports page, using black as base */
+      body.dark-theme {
+        background-color: #1a1a1a; /* Very dark background for the whole page */
+        color: #f0f0f0; /* Light text for contrast */
+      }
+      body.dark-theme nav {
+        background-color: #222222; /* Darker nav bar */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        border-bottom: 1px solid #111111;
+      }
+      body.dark-theme .nav-btn {
+        background-color: #007bff; /* Primary button color remains for consistency */
+        color: #fff;
+      }
+      body.dark-theme .nav-btn:hover {
+        background-color: #0056b3; /* Keep hover consistent */
+      }
+      body.dark-theme .nav-btn.active {
+          background-color: #004080; /* Darker active button */
+      }
+      body.dark-theme .report-container {
+        background: #2a2a2a; /* Darker container background */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        border: 1px solid #3a3a3a;
+      }
+      body.dark-theme h1 {
+        color: #f0f0f0; /* Light title text */
+      }
+      body.dark-theme .report-timestamp {
+        color: #cccccc; /* Slightly lighter grey timestamp */
+      }
+      body.dark-theme .loading-message {
+        color: #cccccc; /* Loading message color */
+      }
+      body.dark-theme .spinner {
+        border-left-color: #007bff; /* Keep spinner color consistent */
+      }
+      body.dark-theme table {
+        background-color: #34495e; /* Table background in dark theme */
+        color: #ecf0f1;
+        border: 1px solid #4a6684;
+      }
+      body.dark-theme th {
+        background-color: #2c3e50; /* Table header background */
+        border-color: #4a6684;
+        color: #f0f0f0; /* Ensure header text is light */
+      }
+      body.dark-theme td {
+        border-color: #4a6684;
+      }
+      body.dark-theme tr:nth-child(even) {
+        background-color: #3e566d;
+      }
+      body.dark-theme tr:hover {
+        background-color: #4a6684;
+      }
+      body.dark-theme #reportTable td::before {
+          color: #bdc3c7;
+      }
+      body.dark-theme #reportTable tr {
+        border: 1px solid #4a6684;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      }
+
+      /* Toggle Button Styles */
+      .toggle-btn {
+        background: none;
+        border: none;
+        color: #6c757d; /* Default color for light mode */
+        font-size: 24px; /* Matches navbar icon size */
+        cursor: pointer;
+        outline: none;
+        transition: color 0.3s ease, transform 0.1s ease;
+        padding: 10px; /* Added padding to make it easier to click */
+        border-radius: 50%; /* Rounded background */
+        margin-right: 15px; /* Space from other nav items */
+      }
+
+      .toggle-btn:hover {
+        color: #495057;
+        transform: scale(1.1);
+        background-color: rgba(108, 117, 125, 0.1); /* Light grey hover background */
+      }
+
+      body.dark-theme .toggle-btn {
+        color: #f0f0f0; /* Light icon for dark theme */
+      }
+
+      body.dark-theme .toggle-btn:hover {
+        color: #ffffff;
+      }
+
+
+      /* Navbar */
+      nav {
+        background-color: #ffffff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between; /* Space out left and right items */
+        align-items: center;
+        width: 100%;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 20px 30px;
+      }
+      .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+      }
+      .report-type-buttons { /* New container for report type selection */
+        display: flex;
+        gap: 15px;
+        margin-left: 20px; /* Space from back button */
+      }
+      .nav-btn {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        background-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
+        outline: none;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+      .nav-btn:hover {
+        background-color: #0056b3;
+        box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+        transform: translateY(-1px);
+      }
+      .nav-btn:active {
+        background-color: #004080;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        transform: translateY(0);
+      }
+      /* Active state for report type buttons */
+      .nav-btn.active {
+          background-color: #004080; /* Darker blue for active button */
+          box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3); /* Inset shadow */
+          cursor: default;
+      }
+      .nav-btn.active:hover {
+          background-color: #004080; /* No change on hover for active */
+          transform: translateY(0);
+          box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Report Content & Table */
+      .report-container {
+        flex-grow: 1;
+        padding: 40px;
+        max-width: 100%; /* Allow container to be full width of parent flex item */
+        margin: 30px; /* Adjusted margin to ensure it's always within bounds */
+        background: #ffffff; /* Set report container background to white */
+        border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        overflow-x: auto; /* Allow horizontal scroll for the container itself if content is too wide */
+      }
+
+      h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        font-size: 32px;
+        font-weight: 700;
+      }
+      .report-timestamp {
+        text-align: center;
+        font-size: 0.9em;
+        color: #777;
+        margin-bottom: 25px;
+      }
+
+      .loading-message {
+        text-align: center;
+        font-size: 1.2em;
+        color: #666;
+        padding: 50px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Loading Spinner */
+      .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-left-color: #007bff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 15px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Table Styling */
+      #reportTable {
+        width: 100%; /* Ensure table takes full width of its parent */
+        border-collapse: collapse;
+        margin-top: 0;
+        min-width: 800px; /* Increased min-width to better accommodate new columns */
+        border-radius: 12px; /* Apply border-radius directly to table */
+        overflow: hidden; /* Ensures rounded corners clip table content */
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05); /* Subtle shadow for the table itself */
+        border: 1px solid #e0e0e0; /* Subtle border for the table */
+      }
+      body.dark-theme #reportTable {
+        border: 1px solid #4a6684;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
+
+      #reportTable th, #reportTable td {
+        border: 1px solid #eee; /* Lighter borders */
+        padding: 15px 20px;
+        text-align: left;
+      }
+      #reportTable th {
+        background-color: #eaf2f8;
+        font-weight: 600;
+        color: #333;
+        text-transform: uppercase;
+        font-size: 0.95em;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      body.dark-theme #reportTable th {
+        background-color: #2c3e50;
+        color: #fff;
+      }
+      #reportTable tr:nth-child(even) {
+        background-color: #fcfcfc;
+      }
+      body.dark-theme #reportTable tr:nth-child(even) {
+        background-color: #3e566d;
+      }
+      #reportTable tr:hover {
+        background-color: #e0f2ff;
+        cursor: pointer;
+      }
+      body.dark-theme #reportTable tr:hover {
+        background-color: #4a6684;
+      }
+      
+      /* Responsive Table (adjustments for new columns and removal of table-wrapper) */
+      @media screen and (max-width: 768px) {
+        .report-container {
+          padding: 20px;
+          margin: 15px auto;
+          overflow-x: auto; /* Ensure container itself can scroll if table overflows */
+        }
+        #reportTable {
+          min-width: unset; /* Remove min-width on mobile */
+        }
+        #reportTable, #reportTable thead, #reportTable tbody, #reportTable th, #reportTable td, #reportTable tr { 
+          display: block; 
+          border: none;
+        }
+        #reportTable thead tr { 
+          position: absolute;
+          top: -9999px;
+          left: -9999px;
+        }
+        #reportTable tr { 
+          border: 1px solid #eee;
+          margin-bottom: 15px;
+          border-radius: 10px;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          transition: all 0.2s ease;
+        }
+        body.dark-theme #reportTable tr {
+            border: 1px solid #4a6684;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        #reportTable tr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        #reportTable td { 
+          border: none;
+          border-bottom: 1px solid #eee;
+          position: relative;
+          padding-left: 55%;
+          text-align: right;
+          font-size: 1.1em;
+        }
+        body.dark-theme #reportTable td {
+            border-bottom: 1px solid #4a6684;
+        }
+        #reportTable td:last-child {
+            border-bottom: none;
+        }
+        #reportTable td::before { 
+          position: absolute;
+          top: 0;
+          left: 10px;
+          width: 40%; 
+          padding-right: 10px; 
+          white-space: nowrap;
+          text-align: left;
+          font-weight: 700;
+          color: #555;
+          line-height: 1.5;
+        }
+        body.dark-theme #reportTable td::before {
+            color: #bdc3c7;
+        }
+        /* Mobile labels for new columns */
+        #reportTable td:nth-of-type(1)::before { content: "Item Name:"; }
+        #reportTable td:nth-of-type(2)::before { content: "Available Qty:"; }
+        #reportTable td:nth-of-type(3)::before { content: "Last Changed Date:"; } /* New label */
+        #reportTable td:nth-of-type(4)::before { content: "Last Changed Time:"; } /* New label */
+      }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlalK/4f0+90l8D/e/S1a+u0/z1E+a3a/t/b/X+n/W/R/2l/X/z/P/z+u/I/s/X/v/c/A/q/w/G/h/w/B/g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  </head>
+  <body>
+    <nav>
+      <div class="nav-left">
+        <button class="nav-btn" onclick="goBack()">
+          <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <div class="report-type-buttons">
+          <button id="showChemicalReportBtn" class="nav-btn active" onclick="fetchAndDisplayReport('chemical', this)">Chemical Report</button>
+          <button id="showItemReportBtn" class="nav-btn" onclick="fetchAndDisplayReport('item', this)">Item Report</button>
+        </div>
+      </div>
+      <div class="nav-buttons">
         <button id="toggleTheme" class="toggle-btn">
-          <i class="fa-solid fa-cloud-sun"></i>
+          <i class="fa-solid fa-cloud-sun"></i> <!-- Sun icon for light mode -->
+        </button>
+        <button class="nav-btn" onclick="exportTableToCSV()">
+          <i class="fas fa-file-export"></i> Export CSV
         </button>
       </div>
-    </div>
-    <div class="user-info" id="user-info">
-      <button class="nav-btn" onclick="manualEdit()">Edit</button>
-      <button class="nav-btn" onclick="generateReport()">Reports</button>
-    </div> -->
-    </div>
-  </nav>
-  <main>
-    <div class="report-selector">
-      <label for="reportType">Select Report:</label>
-      <select id="reportType" onchange="switchReport()">
-        <option value="usage">Chemical Usage Report</option>
-        <option value="inventory">Current Chemical Inventory</option>
-        <option value="insight">Usage Summary (Insights)</option>
-      </select>
-      <input type="text" id="reportSearch" placeholder="Search chemical..." oninput="searchReports()" />
-    </div>
+    </nav>
 
-    <!-- Current Chemical Inventory -->
-    <div id="inventoryReport" class="report-section" style="display:none;">
-      <h2>Current Chemical Inventory</h2>
-      <button onclick="exportToCSV('inventory')">Export CSV</button>
-      <button onclick="renewStock()">Renew Stock</button>
-      <div class="table-wrapper">
-        <table id="inventoryTable">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Qty</th>
-            <th>Unit</th>
-            <th>Last Updated</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        </table>
+    <div class="report-container">
+      <h1 id="reportTitle">Chemical Inventory Report</h1>
+      <p id="reportTimestamp" class="report-timestamp"></p>
+      <div id="reportData">
+        <!-- Initial loading state -->
+        <p class="loading-message">
+            <div class="spinner"></div>
+            Loading report data...
+        </p>
       </div>
     </div>
 
-    <!-- Chemical Usage Report -->
-    <div id="usageReport" class="report-section">
-      <h2>Chemical Usage Report</h2>
-      <button onclick="exportToCSV('usage')">Export CSV</button>
-      <button onclick="clearLogs()">Clear Logs</button>
-      <button onclick="toggleColumns()">Hide/Show Time & User</button>
-      <div class="table-wrapper">
-        <table id="usageTable">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Qty</th>
-            <th>Unit</th>
-            <th>User</th>
-            <th>Date</th>
-            <th>Time</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        </table>
-      </div>
-    </div>
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
-    <!-- Current Chemical Inventory
-    <div id="inventoryReport" class="report-section" style="display:none;">
-      <h2>Current Chemical Inventory</h2>
-      <button onclick="exportToCSV('inventory')">Export CSV</button>
-      <button onclick="renewStock()">Renew Stock</button>
-      <div class="table-wrapper">
-        <table id="inventoryTable">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Qty</th>
-            <th>Unit</th>
-            <th>Last Updated</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        </table>
-      </div>
-    </div> -->
+    <script>
+      // Your Firebase project configuration
+      const firebaseConfig = {
+          apiKey: "AIzaSyAq1n2IIwMauj8nj7dEyPSg7wsKVID3AT8",
+          authDomain: "chemical-inventory-e0681.firebaseapp.com",
+          databaseURL: "https://chemical-inventory-e0681-default-rtdb.firebaseio.com",
+          projectId: "chemical-inventory-e0681",
+          storageBucket: "chemical-inventory-e0681.appspot.com",
+          messagingSenderId: "1040891808880",
+          appId: "1:1040891808880:web:043585c0cff38d79a338b5",
+          measurementId: "G-HTH4QHPK6F"
+      };
 
-    <!-- Usage Summary (Insights) -->
-    <div id="insightReport" class="report-section" style="display:none;">
-      <h2>Usage Summary (Insights)</h2>
-      <button onclick="refreshInsights()">Refresh</button>
-      <button onclick="exportToCSV('insight')">Export Insights</button>
-      <div class="table-wrapper">
-        <table id="insightTable">
-        <thead>
-          <tr>
-            <th>Chemical</th>
-            <th>Total Usage</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-        </table>
-      </div>
-    </div>
-  </main>
-  
-  <script src="inventory-report.js"></script>
-</body>
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+
+      let userId = null; // Will store the current user's UID
+
+      // --- Authentication Check ---
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          userId = user.uid;
+          console.log("Reports page: Logged in as:", user.email, "UID:", userId);
+          // Now that we have the userId, fetch and display the default report (chemical)
+          fetchAndDisplayReport('chemical'); 
+        } else {
+          // User is not logged in, redirect to login page
+          console.log("Reports page: No user logged in, redirecting to auth.html");
+          window.location.href = 'auth.html';
+        }
+      });
+
+      // Define the two distinct lists
+      const chemicalsList = [
+        "Acetamide", "Acetic Acid", "Acetanilide", "Acetone", "Acetyl Salicylic Acid (OOH)", "Activated Zinc metal Powder",
+        "Agar Agar Powder", "Alizarine", "Aluminium Sulphate", "Ammonia", "Ammonium Chloride", "Ammonium Ferrous Sulfate",
+        "Ammonium Hydroxide", "Ammonium Iron (II) Sulphate)", "Ammonium Oxalate", "Ammonium Thiocyanate", "Aniline",
+        "Barium Chloride", "Barium Hydroxide", "Benzaldehyde", "Benzamide", "Benzene", "Benzoic Acid", "Benzoinoxime",
+        "Benzidine", "Bleaching Powder", "Brass Fillings", "Bromine water", "Buffer capsules", "Butan-2-one Extrapure",
+        "Calcon Carboxylic Acid", "Calcium Carbonate", "Calcium Chloride", "Calcium Tetrachloride", "Carboxy Methyl Cellulose",
+        "Cellulose Powder", "Cetylpyridinium bromide", "Charcoal Powder", "Cobalt Nitrate", "Cobaltous Chloride",
+        "Cobaltous chloride", "Copper filings", "Copper Sulphate", "Cyclohexanone", "Dextrose", "Diethyl Ether",
+        "Dimethyl Glyoxime", "di-Sodium Phosphate", "Diphenylamine Ind.", "Dithiozone", "Dolomite Powder", "EDTA",
+        "2,4-Dinitrophenol", "Ethyl Acetate", "Ethyl Alcohol", "Ethyl Benzoate", "Ethyl Benzoate for Synthesis",
+        "Ethyl Cellulose", "Ethyl Methyl Ketone", "Ethylenediamine", "Ethanol", "Ether Solvent", "Fumaric Acid",
+        "Formaldehyde", "Formalin", "Formic Acid", "Furfuraldehyde", "Furfuryl Alcohol", "Fehling Solution A",
+        "Fehling Solution B", "Ferric Chloride", "Ferrous Sulphate", "Glacial Acetic Acid", "Glucose (Dextrose/AVOS?)",
+        "Glycerin (Glycanine/Glycerol?)", "Glycine", "Guar Gum", "Hexane", "Hydrochloric Acid", "Hydrogen Peroxide",
+        "Hydroxyethyl Cellulose", "L-Alginine", "L-Cystine", "Iodine", "Iodine Crystal", "Iron Metal (Powder)",
+        "L-Volume for biochemistry", "Liquid Paraffin (hard)", "Liquid Paraffin (Light)", "Lime Water", "Leasel Acatate", 
+        "Leal Nitrade", "Methyl Cellulose", "n-Butyl Alcohol", "Magnesium Sulphate", "Ortho Phosphoric Acid", "2-Nitrophenol", 
+        "3-Nitro Aniline", "Oxalic Acid", "Nitrobenzene", "Methyl Acetate", "Nickel Chloride", "Mercuric Chloride", "Picric Acid", 
+        "Phthalic Acid", "1-Naphthol", "Methyl Orange", "Polyvinyl Alcohol (cold)", "Potassium Carbonate", "Potassium Dichromate", 
+        "p-Nitroaniline", "Methylene Blue", "Potassium Nitrate", "Ninhydrin", "Methanesulfonic Acid", "n-Butyl Acetate", 
+        "Phthalic Anhydride", "Potassium Chloride", "Methyl Alcohol", "Nitroso-R Salt", "Nickel Nitrate", "Methanol", "β-Naphthol", 
+        "α-Naphthol", "Naphthalene", "p-Nitrophenol", "Nitrobenzene", "Potassium Permanganate", "Potassium Persulfate", 
+        "Potassium Bromide", "Potassium Fluoride", "Potassium Thiocyanate", "Potassium Iodide", "Potassium Dithionite", 
+        "Nitric Acid", "Orthophosphate", "Nickel Acetate Hexahydrate", "Phosphoric Acid", "Nickel Sulphate", "Potassium Hydroxide", 
+        "Potassium Ferrocyanide", "Phenolphthalein Indicator", "Phenol", "Potassium Chromate", "p-Toluidine", "Petroleum Ether", 
+        "1,10-Phenanthroline Hydrate", "Potassium Carbonate Anhydrous", "Phenyl Hydrazine", "Hydroquinone", "Paraffin Wax Pure", 
+        "Phthalic Anhydride", "Rubeanic Acid", "Resorcinol", "Sodium Carbonate", "Sodium Nitrate", "Sodium Hydroxide Pellets", 
+        "Sodium Phosphate Dibasic", "Sodium Thiosulfate", "Semicarbazide Hydrochloride", "Sodium Potassium Tartrate", 
+        "Sodium Sulphate Anhydrous", "Sodium Azide", "Sodium Iodide", "Sodium Acetate", "Sodium Sulphate", "Sulphur Powder", 
+        "Sodium Bicarbonate", "Sodium Nitroprusside", "Schiff's Reagent", "Stannous Chloride", "Urease", "Sodium Sulphite Flakes", 
+        "Starch Indicator", "Silver Nitrate (AgNO₃)", "Sodium Acetate", "Sulfuric Acid", "Spirit (Rectified Spirit)", 
+        "Salicylic Acid", "Thiourea", "Tollens Reagent", "Tollene", "Urea", "Zinc Sulphate", "Zinc Choloride Powder", 
+        "Zinc Oxide Pure", "Zinc Dust"
+      ];
+
+      const itemsList = [
+        "Asbestos Sheet", "B.O.D. Bottle", "Burette 10mL", "Burette",
+        "Burette Stand with Clip", "BOD Bottle", "Beaker 1000mL", "Beaker 500mL",
+        "Beaker 250mL", "Beaker 100mL", "Beaker 25mL", "Beaker (some)",
+        "Buchner Funnel (Small)", "Buchner Funnel (Big)", "Capillary Tube",
+        "Conical Flask 1000mL", "Conical Flask 500mL", "Conical Flask 250mL",
+        "Conical Flask 100mL", "Conical Flask with Gland", "Conical Flask with a Glee",
+        "Conical Flask Wide Side", "Conical Flask (Tarsm)", "Crucible with Lid",
+        "Congo Red Paper", "Cotton Bleached", "Dessicator", "Drop Bottle (Glass)",
+        "Conical Flask (Nominal)", "Column Chromatography Flask", "Filter Flask (500mL)",
+        "Fire Bucket with Sand", "Evaporating Dish", "First Aid Box", "Funnel",
+        "Filter Paper", "Funnel 100mL", "Filter Flask 100mL", "Glass Funnel (Small Sink)",
+        "Glass Column", "Gas Pipe", "Glass Rod", "Crucible (Couch Type)", "ICE Spot",
+        "ID Jar", "IL Flask", "Landberger’s Apparatus", "Iodine Flask (Glass 2500mL)",
+        "Measuring Cylinder", "Notice Board", "GIRAS 500mL", "Ostwald Viscometer",
+        "Plastic Funnel (Big)", "Plastic Lid", "Measuring Cylinder (Plastic 100mL)",
+        "Measuring Cylinder 10mL", "Measuring Cylinder 25mL", "Measuring Cylinder 50mL",
+        "Measuring Cylinder 100mL", "Pipette 25mL", "Pipette 100mL", "Plastic Sample Bottle",
+        "Pestle and Mortar", "Plastic Funnel (Small)", "Plastic Beaker 500mL",
+        "Plastic Beaker 1L", "Pipe Clay Triangle", "Petri Dish", "Plastic Beaker 2500mL",
+        "Plastic Beaker 250mL", "Plastic Water Bath", "Plastic Tray", "Rubber Cork",
+        "Reagent Bottle", "Spatula (Metal)", "Test Tube Holder", "Reflux Condenser",
+        "Spatula (Plastic)", "Test Tube Stand", "Rubber Tubing for Burette",
+        "Steel Water Bath", "Thiele Tube", "Sodium Fusion Tube", "Scissors", "TLC Jar",
+        "Round Bottom Flask (2 Neck)", "Specific Gravity Bottle", "Test Tube Box",
+        "Round Bottom Flask 100mL", "Thermometer (110°C)", "Stalagmometer",
+        "Thermometer (300°C)", "Separating Funnel", "Separating Funnel (M/S)",
+        "Test Tube Brush 6", "Turmeric Paper", "Volumetric Flask 100mL",
+        "Volumetric Flask 250mL", "Volumetric Flask 500mL", "Volumetric Flask 1000mL",
+        "Volumetric Flask (Plastic 1000mL)", "Volumetric Flask (Plastic 500mL)",
+        "Volumetric Flask (Glass 100mL)", "Viscometer 10mL", "Viscometer 25mL",
+        "Wire Gauze", "White Can (5L)", "Wash Bottle (500mL Plastic)",
+        "Whatman Filter Paper", "Watch Glass"
+      ];
+
+      // Utility to map safeKey back to original name for both lists
+      const safeKeyToNameMap = new Map();
+      chemicalsList.forEach(name => {
+          safeKeyToNameMap.set(name.replace(/[.#$/\[\]]/g, "_"), name);
+      });
+      itemsList.forEach(name => {
+          safeKeyToNameMap.set(name.replace(/[.#$/\[\]]/g, "_"), name);
+      });
+
+      // Function to format timestamp into separate date and time strings
+      function formatTimestamp(timestamp) {
+        if (!timestamp) return { date: 'N/A', time: 'N/A' };
+        // Firestore Timestamps are objects, convert to Date
+        const dateObj = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        
+        // Ensure valid date
+        if (isNaN(dateObj.getTime())) {
+            console.error("Invalid timestamp received:", timestamp);
+            return { date: 'Invalid Date', time: 'Invalid Time' };
+        }
+        const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+
+        const date = dateObj.toLocaleDateString(undefined, dateOptions);
+        const time = dateObj.toLocaleTimeString(undefined, timeOptions);
+        return { date, time };
+      }
+
+      // Function to fetch and display report data based on type (chemical or item)
+      async function fetchAndDisplayReport(reportType, clickedButton = null) {
+        if (!userId) {
+            console.error("No user ID available for reports.");
+            return;
+        }
+
+        const reportTitleElement = document.getElementById('reportTitle');
+        const reportDataContainer = document.getElementById('reportData');
+        const reportTimestampElement = document.getElementById('reportTimestamp');
+        
+        // Update active button state
+        document.querySelectorAll('.report-type-buttons .nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        if (clickedButton) {
+            clickedButton.classList.add('active');
+        } else { // Default to 'chemical' button if not clicked (on initial load)
+            document.getElementById('showChemicalReportBtn').classList.add('active');
+        }
+
+        // Set report title
+        reportTitleElement.innerText = reportType === 'chemical' ? 'Chemical Inventory Report' : 'Item Inventory Report';
+
+        // Show loading spinner
+        reportDataContainer.innerHTML = `
+            <p class="loading-message">
+                <div class="spinner"></div>
+                Loading report data...
+            </p>
+        `;
+        reportTimestampElement.innerText = ''; // Clear previous timestamp
+
+        try {
+          // Determine which list to use based on reportType
+          const targetList = reportType === 'chemical' ? chemicalsList : itemsList;
+          const targetSafeKeys = new Set(targetList.map(name => name.replace(/[.#$/\[\]]/g, "_")));
+
+          // Fetch all data from Firestore for the current user
+          const querySnapshot = await db.collection("users").doc(userId).collection("chemicals").get();
+          const allData = {};
+          querySnapshot.forEach(doc => {
+              allData[doc.id] = doc.data();
+          });
+
+          let tableHTML = `
+            <table id="reportTable">
+              <thead>
+                <tr>
+                  <th>${reportType === 'chemical' ? 'Chemical Name' : 'Item Name'}</th>
+                  <th>Available Quantity</th>
+                  <th>Last Changed Date</th>
+                  <th>Last Changed Time</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+
+          const filteredDataKeys = Object.keys(allData).filter(safeKey => targetSafeKeys.has(safeKey));
+
+          if (filteredDataKeys.length > 0) {
+            // Sort keys to ensure consistent order based on the original name
+            const sortedKeys = filteredDataKeys.sort((a, b) => {
+                const nameA = safeKeyToNameMap.get(a) || a;
+                const nameB = safeKeyToNameMap.get(b) || b;
+                return nameA.localeCompare(nameB);
+            });
+
+            sortedKeys.forEach(safeKey => {
+              const item = allData[safeKey];
+              const itemName = safeKeyToNameMap.get(safeKey) || safeKey; // Get original name
+              // Display available quantity and its unit
+              const availableQty = item.available !== undefined ? `${item.available.toFixed(2)} ${item.unit || 'units'}` : 'Not Set';
+              
+              // Pass the raw Firestore timestamp object to formatTimestamp
+              const { date: lastChangedDate, time: lastChangedTime } = formatTimestamp(item.lastUpdated);
+
+              tableHTML += `
+                <tr>
+                  <td>${itemName}</td>
+                  <td>${availableQty}</td>
+                  <td>${lastChangedDate}</td>
+                  <td>${lastChangedTime}</td>
+                </tr>
+              `;
+            });
+            reportTimestampElement.innerText = `Report generated on: ${new Date().toLocaleString()}`;
+
+          } else {
+            tableHTML += `<tr><td colspan="4" style="text-align: center;">No ${reportType} inventory data found for this user.</td></tr>`;
+            reportTimestampElement.innerText = ''; // No timestamp if no data
+          }
+
+          tableHTML += `
+              </tbody>
+            </table>
+          `;
+          reportDataContainer.innerHTML = tableHTML;
+
+        } catch (error) {
+          console.error("Error fetching report data from Firestore:", error);
+          reportDataContainer.innerHTML = `<p class="loading-message" style="color: red;">Error loading report: ${error.message}</p>`;
+          reportTimestampElement.innerText = ''; // No timestamp on error
+        }
+      }
+
+      // Function to export table data to CSV
+      function exportTableToCSV() {
+        const table = document.getElementById('reportTable');
+        if (!table) {
+            console.error("Report table not found for export.");
+            return;
+        }
+
+        let csv = [];
+        const rows = table.querySelectorAll('tr');
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = [];
+            const cols = rows[i].querySelectorAll('td, th');
+            for (let j = 0; j < cols.length; j++) {
+                // Escape commas and double quotes in cell data
+                let data = cols[j].innerText.replace(/"/g, '""'); // Escape double quotes
+                row.push(`"${data}"`); // Enclose in double quotes
+            }
+            csv.push(row.join(','));
+        }
+
+        // Create CSV file and download
+        const csvString = csv.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'chemical_inventory_report.csv';
+        document.body.appendChild(link); // Required for Firefox
+        link.click();
+        document.body.removeChild(link); // Clean up
+      }
+
+
+      // Function to navigate back to the main inventory page
+      function goBack() {
+        window.history.back(); // Goes back to the previous page in history
+      }
+
+      // --- Theme Toggling Logic (copied from homepage for consistency) ---
+      const body = document.body;
+      const toggleThemeBtn = document.getElementById('toggleTheme');
+      const themeIcon = toggleThemeBtn.querySelector('i');
+
+      /**
+       * Applies the specified theme to the body and updates the theme toggle icon.
+       * @param {string} theme - The theme to apply ('dark' or 'light').
+       */
+      function applyTheme(theme) {
+          if (theme === 'dark') {
+              body.classList.add('dark-theme');
+              themeIcon.classList.remove('fa-cloud-sun');
+              themeIcon.classList.add('fa-moon'); // Moon icon for dark mode
+              localStorage.setItem('theme', 'dark');
+          } else {
+              body.classList.remove('dark-theme');
+              themeIcon.classList.remove('fa-moon');
+              themeIcon.classList.add('fa-cloud-sun'); // Sun icon for light mode
+              localStorage.setItem('theme', 'light');
+          }
+      }
+
+      // Load saved theme from localStorage on page load
+      document.addEventListener('DOMContentLoaded', () => {
+          const savedTheme = localStorage.getItem('theme');
+          if (savedTheme) {
+              applyTheme(savedTheme);
+          } else {
+              // Check system preference if no theme is saved yet
+              if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                  applyTheme('dark');
+              } else {
+                  applyTheme('light'); // Default theme
+              }
+          }
+      });
+
+      // Toggle theme on button click
+      toggleThemeBtn.addEventListener('click', function() {
+          const currentTheme = localStorage.getItem('theme');
+          if (currentTheme === 'dark') {
+              applyTheme('light');
+          } else {
+              applyTheme('dark');
+          }
+      });
+      // --- End Theme Toggling Logic ---
+    </script>
+    <!-- 
+      IMPORTANT: You MUST replace the 'a076d05399' with YOUR ACTUAL Font Awesome Kit ID.
+      Go to fontawesome.com, sign in, and find your kit's embed code.
+      If this link is incorrect, the icons will not be visible.
+    -->
+    <script
+      src="https://kit.fontawesome.com/a076d05399.js"
+      crossorigin="anonymous"
+    ></script>
+  </body>
 </html>

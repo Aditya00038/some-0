@@ -4,31 +4,501 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chemical Database</title>
-    <link rel="stylesheet" href="view-chem.css">
-    <script src="view-chem.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlalK/4f0+90l8D/e/S1a+u0/z1E+a3a/t/b/X+n/W/R/2l/X/z/P/z+u/I/s/X/v/c/A/q/w/G/h/w/B/g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+      /* Apply to html and body for full control */
+      html, body {
+        width: 100%; /* Ensure they take full width */
+        overflow-x: hidden; /* Hide horizontal scrollbar */
+        margin: 0;
+        padding: 0;
+      }
       body {
         font-family: 'Inter', sans-serif;
+        background: #f4f4f4;
+        color: #333; /* Default text color */
+        transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+        min-height: 100vh; /* Ensure body takes at least full viewport height */
+        display: flex; /* Use flexbox for overall layout */
+        flex-direction: column; /* Stack nav and inventory vertically */
       }
-      nav button, nav input {
-        font-family: 'Inter', sans-serif;
+
+      /* Universal Box-Sizing: Best Practice */
+      *, *::before, *::after {
+        box-sizing: border-box;
       }
-      .chemical-item h3, .chemical-item p {
-        font-family: 'Inter', sans-serif;
+
+      /* Dark Theme Styles */
+      body.dark-theme {
+        background-color: #1a1a1a; /* Very dark background - nearly black */
+        color: #f0f0f0; /* Light text for contrast */
+      }
+
+      body.dark-theme .container {
+        background: #2a2a2a; /* Darker container */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        border: 1px solid #3a3a3a; /* Darker border */
+      }
+
+      body.dark-theme .chemical-item {
+        background-color: #3a3a3a;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        border: 1px solid #555555;
+      }
+
+      body.dark-theme .chemical-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+      }
+
+      body.dark-theme .chemical-item h3 {
+        color: #f0f0f0;
+      }
+
+      body.dark-theme .chemical-item .label {
+        color: #cccccc;
+      }
+
+      body.dark-theme .chemical-item .value {
+        color: #e0e0e0;
+      }
+
+      body.dark-theme .error-item {
+        background-color: #7f3a3a; /* Darker red for error */
+        border-color: #e74c3c;
+      }
+
+      body.dark-theme nav {
+        background-color: #222222; /* Blacker nav bar */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        border-bottom: 1px solid #111111;
+      }
+
+      body.dark-theme nav button {
+        background-color: #007bff; /* Keep primary button color consistent */
+        color: #fff;
+      }
+
+      body.dark-theme nav button:hover {
+        background-color: #0056b3;
+      }
+
+      body.dark-theme input[type="text"] {
+        background-color: #3a3a3a;
+        border-color: #555555;
+        color: #f0f0f0;
+      }
+
+      body.dark-theme input[type="text"]:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+      }
+
+      body.dark-theme #toggleTheme {
+        background-color: transparent !important; /* Ensure no blue background */
+        color: #f0f0f0; /* Light icon for dark theme */
+      }
+      
+      body.dark-theme #toggleTheme:hover {
+        background-color: rgba(240, 240, 240, 0.1); /* Subtle hover for dark mode */
+        color: #ffffff;
+      }
+
+      /* Navigation Bar */
+      nav {
+        background-color: #ffffff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        position: sticky; /* Changed to sticky for better scrolling */
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 15px 20px; /* Adjusted padding */
+        gap: 15px; /* Spacing between nav items */
+      }
+
+      nav button {
+        padding: 10px 15px; /* Smaller padding for nav buttons */
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 500;
+        background-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.1s ease;
+        outline: none;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+
+      nav button:hover {
+        background-color: #0056b3;
+        box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+        transform: translateY(-1px);
+      }
+
+      nav button:active {
+        background-color: #004080;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        transform: translateY(0);
+      }
+
+      input[type="text"] {
+        flex-grow: 1; /* Allow search input to take available space */
+        padding: 10px 15px;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        outline: none;
+        font-size: 15px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        min-width: 150px; /* Ensure a minimum width */
+      }
+
+      input[type="text"]:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      }
+
+      /* Toggle Button Styles */
+      #toggleTheme {
+        background: none;
+        border: none;
+        color: #6c757d; /* Default color for light mode */
+        font-size: 24px;
+        cursor: pointer;
+        outline: none;
+        transition: color 0.3s ease, transform 0.1s ease, background-color 0.3s ease; /* Include background-color for transition */
+        padding: 8px; /* Adjusted padding */
+        border-radius: 50%; /* Rounded background */
+        margin-left: 10px; /* Space from search bar */
+      }
+
+      #toggleTheme:hover {
+        background-color: rgba(108, 117, 125, 0.1); /* Subtle hover effect in light mode */
+        color: #495057;
+        transform: scale(1.1);
+      }
+
+      /* Main container for chemicals */
+      .container {
+        padding: 20px;
+        margin: 20px auto;
+        max-width: 900px; /* Max width for readability */
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column; /* Changed to column to stack elements inside */
+        align-items: center; /* Center items horizontally */
+      }
+
+      #title {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 25px;
+        font-size: 28px;
+        font-weight: 700;
+      }
+
+      #searchResult {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      /* New wrapper for chemical items */
+      #chemicalItemsWrapper {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px; /* Spacing between chemical items */
+        width: 100%;
+      }
+
+      .chemical-item {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        width: calc(33.333% - 20px); /* 3 items per row, accounting for gap */
+        min-width: 280px; /* Minimum width for smaller screens */
+        box-sizing: border-box;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .chemical-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+      }
+
+      .chemical-item h3 {
+        font-size: 1.4em;
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: #333;
+        text-align: center;
+        word-wrap: break-word; /* Ensure long names wrap */
+      }
+
+      .chemical-item p {
+        margin: 8px 0;
+        font-size: 0.95em;
+        line-height: 1.5;
+        text-align: left; /* Align text within item */
+      }
+
+      .chemical-item .label {
+        font-weight: bold;
+        color: #555;
+        display: inline-block; /* Ensure label and value are on same line if space permits */
+        width: 120px; /* Fixed width for labels for alignment */
+      }
+
+      .chemical-item .value {
+        color: #777;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .error-item {
+        background-color: #ffcccc;
+        border: 1px solid #cc0000;
+        color: #cc0000;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .chemical-item {
+          width: calc(50% - 20px); /* 2 items per row on tablets */
+        }
+        nav {
+          flex-wrap: wrap; /* Allow nav items to wrap */
+          justify-content: center;
+          padding: 15px;
+          gap: 10px;
+        }
+        nav button, input[type="text"] {
+          width: 100%; /* Full width on small screens */
+          max-width: 300px;
+        }
+        #toggleTheme {
+          margin-left: 0; /* Remove left margin on small screens */
+        }
+      }
+
+      @media (max-width: 480px) {
+        .chemical-item {
+          width: 95%; /* 1 item per row on mobile */
+        }
       }
     </style>
 </head>
 <body>
     <nav>
         <button onclick="goBack()">Back</button>
+        <button id="toggleTheme" class="toggle-btn">
+            <i class="fa-solid fa-cloud-sun"></i> <!-- Sun icon for light mode -->
+        </button>
         <input type="text" id="chemicalSearch" placeholder="Search Chemical...">
         <button onclick="fetchChemicalData()">Search</button>
     </nav>
     <div class="container">
         <h2 id="title">List of Chemicals</h2>
         <div id="searchResult" class="hidden"></div>
-        <div id="chemicalList"></div>
+        <div id="chemicalItemsWrapper"></div> <!-- New wrapper for chemical items -->
     </div>
+
+    <script>
+        const commonChemicals = ["Water", "Oxygen", "Carbon Dioxide", "Methane", "Ethanol", "Glucose", "Sulfuric Acid", "Acetic Acid", "Sodium Chloride", "Ammonia", "Hydrogen", "Nitrogen", "Carbon Monoxide", "Hydrochloric Acid", "Sodium Hydroxide", "Potassium Chloride", "Calcium Carbonate", "Methanol", "Acetone", "Ethylene"];
+
+        const chemicalStates = {
+            "Water": "Liquid",
+            "Oxygen": "Gas",
+            "Carbon Dioxide": "Gas",
+            "Methane": "Gas",
+            "Ethanol": "Liquid",
+            "Glucose": "Solid",
+            "Sulfuric Acid": "Liquid",
+            "Acetic Acid": "Liquid",
+            "Sodium Chloride": "Solid",
+            "Ammonia": "Gas",
+            "Hydrogen": "Gas",
+            "Nitrogen": "Gas",
+            "Carbon Monoxide": "Gas",
+            "Hydrochloric Acid": "Liquid", // Could also be a gas (hydrogen chloride)
+            "Sodium Hydroxide": "Solid",
+            "Potassium Chloride": "Solid",
+            "Calcium Carbonate": "Solid",
+            "Methanol": "Liquid",
+            "Acetone": "Liquid",
+            "Ethylene": "Gas"
+        };
+
+        // --- Theme Toggling Logic ---
+        const body = document.body;
+        const toggleThemeBtn = document.getElementById('toggleTheme');
+        // Ensure themeIcon is selected *after* the button is in the DOM
+        let themeIcon = null;
+
+        /**
+         * Applies the specified theme to the body and updates the theme toggle icon.
+         * @param {string} theme - The theme to apply ('dark' or 'light').
+         */
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                body.classList.add('dark-theme');
+                if (themeIcon) {
+                    themeIcon.classList.remove('fa-cloud-sun');
+                    themeIcon.classList.add('fa-moon'); // Moon icon for dark mode
+                }
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.remove('dark-theme');
+                if (themeIcon) {
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-cloud-sun'); // Sun icon for light mode
+                }
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Select the theme icon after the DOM is loaded
+            themeIcon = toggleThemeBtn.querySelector('i');
+
+            // Load saved theme from localStorage on page load
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else {
+                // Check system preference if no theme is saved yet
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    applyTheme('dark');
+                } else {
+                    applyTheme('light'); // Default theme
+                }
+            }
+
+            // Toggle theme on button click
+            toggleThemeBtn.addEventListener('click', function() {
+                const currentTheme = localStorage.getItem('theme');
+                if (currentTheme === 'dark') {
+                    applyTheme('light');
+                } else {
+                    applyTheme('dark');
+                }
+            });
+
+            // Load chemicals after theme is applied
+            loadChemicals();
+        });
+
+
+        async function loadChemicals() {
+            const chemicalItemsWrapper = document.getElementById("chemicalItemsWrapper");
+            chemicalItemsWrapper.innerHTML = ""; // Clear current items
+            document.getElementById("searchResult").classList.add("hidden");
+            document.getElementById("title").innerText = "List of Chemicals";
+
+            for (let chemical of commonChemicals) {
+                try {
+                    let apiUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${chemical}/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IUPACName/JSON`;
+                    let response = await fetch(apiUrl);
+                    if (!response.ok) throw new Error("Failed to fetch");
+                    let data = await response.json();
+                    if (!data || !data.PropertyTable || !data.PropertyTable.Properties || data.PropertyTable.Properties.length === 0) {
+                        console.warn(`No data found for ${chemical}`);
+                        continue; // Skip to the next chemical
+                    }
+                    let properties = data.PropertyTable.Properties[0];
+                    let state = chemicalStates[chemical] || "N/A";
+
+                    let item = document.createElement("div");
+                    item.className = "chemical-item";
+                    item.innerHTML = `
+                        <h3 class="chemical-name">${chemical}</h3>
+                        <p><span class="label">Formula:</span> <span class="value">${properties.MolecularFormula || 'N/A'}</span></p>
+                        <p><span class="label">Molecular Weight:</span> <span class="value">${properties.MolecularWeight || 'N/A'}</span></p>
+                        <p><span class="label">Physical State:</span> <span class="value">${state}</span></p>
+                        <p><span class="label">IUPAC Name:</span> <span class="value">${properties.IUPACName || 'N/A'}</span></p>
+                    `;
+                    chemicalItemsWrapper.appendChild(item); // Append to the new wrapper
+                } catch (error) {
+                    console.error(`Error fetching ${chemical}:`, error);
+                    let item = document.createElement("div");
+                    item.className = "chemical-item error-item";
+                    item.innerHTML = `<h3>${chemical}</h3><p style="color:red;">Error fetching data</p>`;
+                    chemicalItemsWrapper.appendChild(item); // Append to the new wrapper
+                }
+            }
+        }
+
+        async function fetchChemicalData() {
+            let chemicalName = document.getElementById("chemicalSearch").value;
+            if (!chemicalName) {
+                document.getElementById("searchResult").innerHTML = `<p style='color:red;'>Please enter a chemical name.</p>`;
+                document.getElementById("searchResult").classList.remove("hidden");
+                return;
+            }
+            let apiUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${chemicalName}/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IUPACName/JSON`;
+            try {
+                let response = await fetch(apiUrl);
+                if (!response.ok) throw new Error("Chemical not found");
+                let data = await response.json();
+
+                if (!data || !data.PropertyTable || !data.PropertyTable.Properties || data.PropertyTable.Properties.length === 0) {
+                    document.getElementById("searchResult").innerHTML = `<p style='color:red;'>No data found for ${chemicalName}</p>`;
+                    document.getElementById("searchResult").classList.remove("hidden");
+                    return;
+                }
+
+                let properties = data.PropertyTable.Properties[0];
+                let state = chemicalStates[chemicalName] || "N/A";
+
+                // Clear the chemical items wrapper directly when a search result is shown
+                document.getElementById("chemicalItemsWrapper").innerHTML = ""; 
+                document.getElementById("title").innerText = `Results for ${chemicalName}`;
+                let resultDiv = document.getElementById("searchResult");
+                resultDiv.innerHTML = `
+                    <div class="chemical-item result-item">
+                        <h3 class="chemical-name">${chemicalName}</h3>
+                        <p><span class="label">Formula:</span> <span class="value">${properties.MolecularFormula || 'N/A'}</span></p>
+                        <p><span class="label">Molecular Weight:</span> <span class="value">${properties.MolecularWeight || 'N/A'}</span></p>
+                        <p><span class="label">Physical State:</span> <span class="value">${state}</span></p>
+                        <p><span class="label">IUPAC Name:</span> <span class="value">${properties.IUPACName || 'N/A'}</span></p>
+                    </div>
+                `;
+                resultDiv.classList.remove("hidden");
+            } catch (error) {
+                document.getElementById("searchResult").innerHTML = `<p style='color:red;'>Error: ${error.message}</p>`;
+                document.getElementById("searchResult").classList.remove("hidden");
+
+            }
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        document.getElementById('chemicalSearch').addEventListener('input', function() {
+            let query = this.value.toLowerCase();
+            const chemicalItemsWrapper = document.getElementById("chemicalItemsWrapper");
+            const chemicalItems = chemicalItemsWrapper.getElementsByClassName("chemical-item");
+
+            for (let item of chemicalItems) {
+                let chemicalName = item.querySelector(".chemical-name").textContent.toLowerCase();
+                if (chemicalName.includes(query)) {
+                    item.style.display = "";
+                } else {
+                    item.style.display = "none";
+                }
+            }
+        });
+    </script>
 </body>
 </html>
